@@ -1,13 +1,4 @@
-import type { Node } from "@xyflow/react";
-
-import { state } from "@formkit/drag-and-drop";
-import {
-  Background,
-  Controls,
-  MiniMap,
-  ReactFlow,
-  useReactFlow,
-} from "@xyflow/react";
+import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
 import { useShallow } from "zustand/shallow";
 
 import type { UseReactFlowStore } from "@/stores";
@@ -26,20 +17,8 @@ const selector = (state: UseReactFlowStore) => ({
 });
 
 export const ReactFlowComponent = () => {
-  const { screenToFlowPosition } = useReactFlow();
-
-  const { edges, nodes, setNodes, onConnect, onEdgesChange, onNodesChange } =
+  const { edges, nodes, onConnect, onEdgesChange, onNodesChange } =
     useReactFlowStore(useShallow(selector));
-
-  state.on("dragEnded", ({ coordinates }: any) => {
-    const newNode: Node = {
-      id: Date.now().toString(),
-      position: screenToFlowPosition(coordinates),
-      data: { title: "Block" },
-    };
-
-    setNodes([...nodes, newNode]);
-  });
 
   return (
     <ReactFlow

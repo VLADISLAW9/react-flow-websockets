@@ -1,6 +1,6 @@
+import type { AppNode } from "@/types/AppNode";
 import type {
   Edge,
-  Node,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
@@ -11,12 +11,12 @@ import { create } from "zustand";
 
 export interface UseReactFlowStore {
   edges: Edge[];
-  nodes: Node[];
+  nodes: AppNode[];
   onConnect: OnConnect;
   onEdgesChange: OnEdgesChange;
-  onNodesChange: OnNodesChange<Node>;
+  onNodesChange: OnNodesChange<AppNode>;
   setEdges: (edges: Edge[]) => void;
-  setNodes: (nodes: Node[]) => void;
+  setNodes: (nodes: AppNode[]) => void;
 }
 
 export const useReactFlowStore = create<UseReactFlowStore>((set, get) => ({
