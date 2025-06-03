@@ -1,9 +1,9 @@
 import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
 import { useShallow } from "zustand/shallow";
 
-import type { UseReactFlowStore } from "@/stores";
+import type { UseReactFlowStore } from "@/utils/stores";
 
-import { useReactFlowStore } from "@/stores";
+import { useReactFlowStore } from "@/utils/stores";
 
 import "@xyflow/react/dist/style.css";
 

@@ -1,4 +1,4 @@
-import type { AppNode } from "@/types/AppNode";
+import type { AppNode } from "@/utils/types/AppNode";
 import type {
   Edge,
   OnConnect,

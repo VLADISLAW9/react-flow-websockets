@@ -39,32 +39,26 @@ wss.on("connection", (ws) => {
   ws.on("message", (message) => {
     try {
       const data = JSON.parse(message.toString());
+
       console.log("Получено сообщение:", data.type);
 
-      switch (data.type) {
-        case "JOIN_ROOM":
-          handleJoinRoom(ws, data.payload.roomId);
-          break;
+      if (data.type === "JOIN_ROOM")
+        return handleJoinRoom(ws, data.payload.roomId);
 
-        case "ADD_NODE":
-          handleAddNode(ws, data.payload.node);
-          break;
+      if (data.type === "ADD_NODE") return handleAddNode(ws, data.payload.node);
 
-        case "REMOVE_NODE":
-          handleRemoveNode(ws, data.payload.nodeId);
-          break;
+      if (data.type === "REMOVE_NODE")
+        return handleRemoveNode(ws, data.payload.nodeId);
 
-        case "UPDATE_NODE_DATA":
-          handleUpdateNodeData(ws, data.payload.nodeId, data.payload.newData);
-          break;
+      if (data.type === "UPDATE_NODE_DATA")
+        return handleUpdateNodeData(
+          ws,
+          data.payload.nodeId,
+          data.payload.newData,
+        );
 
-        case "MOVE_NODE":
-          handleMoveNode(ws, data.payload.nodeId, data.payload.position);
-          break;
-
-        default:
-          console.log("Неизвестный тип сообщения:", data.type);
-      }
+      if (data.type === "MOVE_NODE")
+        return handleMoveNode(ws, data.payload.nodeId, data.payload.position);
     } catch (error) {
       console.error("Ошибка обработки сообщения:", error);
     }
@@ -83,21 +77,22 @@ wss.on("connection", (ws) => {
     }
   });
 
-  function handleJoinRoom(ws, roomId) {
-    if (!roomId) {
-      roomId = uuidv4();
-    }
+  const handleJoinRoom = (ws, roomId) => {
+    if (!roomId) roomId = uuidv4();
 
     if (!rooms.has(roomId)) {
       rooms.set(roomId, {
         clients: new Set([ws]),
         flowState: JSON.parse(JSON.stringify(initialFlowState)),
       });
+
       console.log(`Создана новая комната: ${roomId}`);
-    } else {
-      rooms.get(roomId).clients.add(ws);
-      console.log(`Клиент присоединился к комнате: ${roomId}`);
+
+      return;
     }
+
+    rooms.get(roomId).clients.add(ws);
+    console.log(`Клиент присоединился к комнате: ${roomId}`);
 
     currentRoom = roomId;
 
@@ -110,16 +105,14 @@ wss.on("connection", (ws) => {
         },
       }),
     );
-  }
+  };
 
-  function handleAddNode(ws, node) {
+  const handleAddNode = (ws, node) => {
     if (!currentRoom || !rooms.has(currentRoom)) return;
 
     const room = rooms.get(currentRoom);
 
-    if (!node.id) {
-      node.id = `node-${uuidv4()}`;
-    }
+    if (!node.id) node.id = `node-${uuidv4()}`;
 
     if (!room.flowState.nodes.some((n) => n.id === node.id)) {
       room.flowState.nodes.push(node);
@@ -133,9 +126,9 @@ wss.on("connection", (ws) => {
         ws,
       );
     }
-  }
+  };
 
-  function handleRemoveNode(ws, nodeId) {
+  const handleRemoveNode = (ws, nodeId) => {
     if (!currentRoom || !rooms.has(currentRoom)) return;
 
     const room = rooms.get(currentRoom);
@@ -149,45 +142,45 @@ wss.on("connection", (ws) => {
       type: "NODE_REMOVED",
       payload: { nodeId },
     });
-  }
+  };
 
-  function handleUpdateNodeData(ws, nodeId, newData) {
+  const handleUpdateNodeData = (ws, nodeId, newData) => {
     if (!currentRoom || !rooms.has(currentRoom)) return;
 
     const room = rooms.get(currentRoom);
     const node = room.flowState.nodes.find((n) => n.id === nodeId);
 
-    if (node) {
-      node.data = { ...node.data, ...newData };
+    if (!node) return;
 
-      broadcastToRoom(currentRoom, {
-        type: "NODE_DATA_UPDATED",
-        payload: { nodeId, newData },
-      });
-    }
-  }
+    node.data = { ...node.data, ...newData };
 
-  function handleMoveNode(ws, nodeId, position) {
+    broadcastToRoom(currentRoom, {
+      type: "NODE_DATA_UPDATED",
+      payload: { nodeId, newData },
+    });
+  };
+
+  const handleMoveNode = (ws, nodeId, position) => {
     if (!currentRoom || !rooms.has(currentRoom)) return;
 
     const room = rooms.get(currentRoom);
     const node = room.flowState.nodes.find((n) => n.id === nodeId);
 
-    if (node) {
-      node.position = position;
+    if (!node) return;
 
-      broadcastToRoom(
-        currentRoom,
-        {
-          type: "NODE_MOVED",
-          payload: { nodeId, position },
-        },
-        ws,
-      );
-    }
-  }
+    node.position = position;
 
-  function broadcastToRoom(roomId, message, excludeWs = null) {
+    broadcastToRoom(
+      currentRoom,
+      {
+        type: "NODE_MOVED",
+        payload: { nodeId, position },
+      },
+      ws,
+    );
+  };
+
+  const broadcastToRoom = (roomId, message, excludeWs = null) => {
     if (!rooms.has(roomId)) return;
 
     const room = rooms.get(roomId);
@@ -195,14 +188,14 @@ wss.on("connection", (ws) => {
 
     room.clients.forEach((client) => {
       if (client !== excludeWs && client.readyState === 1) {
-        // 1 = OPEN
         client.send(messageStr);
       }
     });
-  }
+  };
 });
 
 const PORT = process.env.PORT || 9000;
+
 server.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
 });

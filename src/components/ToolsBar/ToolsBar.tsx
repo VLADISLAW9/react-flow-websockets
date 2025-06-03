@@ -4,9 +4,9 @@ import { useDragAndDrop } from "@formkit/drag-and-drop/react";
 
 import { MaterialSymbolsStopOutline } from "../icons";
 import { ToolsBarItem } from "./components";
-import type { AppNode } from "@/types/AppNode";
+import type { AppNode } from "@/utils/types/AppNode";
 import { useReactFlow } from "@xyflow/react";
-import { useReactFlowStore } from "@/stores";
+import { useReactFlowStore, useWebSocketStore } from "@/utils/stores";
 
 const TOOLS_BAR_ITEMS: {
   name: string;
@@ -18,12 +18,9 @@ const TOOLS_BAR_ITEMS: {
   },
 ];
 
-interface ToolBarProps {
-  webSocketSend: any;
-}
-
-export const ToolsBar = ({ webSocketSend }: ToolBarProps) => {
+export const ToolsBar = () => {
   const { screenToFlowPosition } = useReactFlow();
+  const { addNode } = useWebSocketStore();
 
   const [ref] = useDragAndDrop<HTMLUListElement>(TOOLS_BAR_ITEMS, {
     nativeDrag: false,
@@ -37,9 +34,8 @@ export const ToolsBar = ({ webSocketSend }: ToolBarProps) => {
       };
 
       setNodes([...nodes, newNode]);
-      webSocketSend(
-        JSON.stringify({ type: "ADD_NODE", payload: { node: newNode } }),
-      );
+
+      addNode(newNode);
     },
   });
 
