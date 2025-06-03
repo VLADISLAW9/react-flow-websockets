@@ -11,7 +11,6 @@ interface WebSocketState {
   status: WebSocketStatus;
   roomId: string | number | undefined;
   users: string[];
-  error: string | null;
 }
 
 interface WebSocketStoreAction {
@@ -19,7 +18,7 @@ interface WebSocketStoreAction {
   disconnect: () => void;
   send: (data: any) => void;
   joinRoom: (roomId?: string | number) => void;
-  addNode: (node: Omit<AppNode, "id">) => void;
+  addNode: (node: AppNode) => void;
   removeNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, newData: Partial<AppNode["data"]>) => void;
   moveNode: (nodeId: string, position: AppNode["position"]) => void;
@@ -47,16 +46,18 @@ export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
       }
 
       if (data.type === "NODE_ADDED") {
-        return setNodes([...nodes, data.payload.node]);
+        setNodes([...nodes, data.payload.node]);
+
+        return;
       }
 
       if (data.type === "NODE_REMOVED") {
         setNodes(nodes.filter((n) => n.id !== data.payload.nodeId));
         setEdges(
           edges.filter(
-            (e) =>
-              e.source !== data.payload.nodeId &&
-              e.target !== data.payload.nodeId,
+            (edge) =>
+              edge.source !== data.payload.nodeId &&
+              edge.target !== data.payload.nodeId,
           ),
         );
 
@@ -64,29 +65,35 @@ export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
       }
 
       if (data.type === "NODE_DATA_UPDATED") {
-        return setNodes(
+        setNodes(
           nodes.map((n) =>
             n.id === data.payload.nodeId
               ? { ...n, data: { ...n.data, ...data.payload.newData } }
               : n,
           ),
         );
+
+        return;
       }
 
       if (data.type === "NODE_MOVED") {
-        return setNodes(
+        setNodes(
           nodes.map((n) =>
             n.id === data.payload.nodeId
               ? { ...n, position: data.payload.position }
               : n,
           ),
         );
+
+        return;
       }
 
       if (data.type === "USER_LEFT") {
-        return set((state) => ({
+        set((state) => ({
           users: state.users.filter((user) => user !== data.payload.userId),
         }));
+
+        return;
       }
     };
 
@@ -99,9 +106,10 @@ export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
 
       connect: () => {
         const { ws, status } = get();
+
         if (ws || status === "connecting") return;
 
-        set({ status: "connecting", error: null });
+        set({ status: "connecting" });
 
         try {
           const socket = new WebSocket(WEB_SOCKET_URL);
@@ -109,7 +117,6 @@ export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
           socket.onopen = () => {
             console.log("WebSocket connected");
             set({ ws: socket, status: "connected" });
-
             get().joinRoom(1);
           };
 
@@ -122,35 +129,30 @@ export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
 
           socket.onerror = (error) => {
             console.error("WebSocket error:", error);
-            set({
-              status: "failed",
-              error: "WebSocket connection failed",
-            });
+            set({ status: "failed" });
           };
         } catch (err) {
-          set({
-            status: "failed",
-            error: err instanceof Error ? err.message : "Failed to connect",
-          });
+          set({ status: "failed" });
         }
       },
 
       disconnect: () => {
         const { ws } = get();
-        if (ws) {
-          ws.close();
-          set({ ws: null, status: "disconnected" });
-        }
+
+        if (!ws) return;
+
+        ws.close();
+        set({ ws: null, status: "disconnected" });
       },
 
       send: (data) => {
         const { ws, status } = get();
+
         if (ws && status === "connected") {
           try {
             ws.send(JSON.stringify(data));
           } catch (err) {
             console.error("Failed to send message:", err);
-            set({ error: "Failed to send message" });
           }
         }
       },
@@ -161,49 +163,29 @@ export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
 
         if (!roomToJoin) return;
 
-        send({
-          type: "JOIN_ROOM",
-          payload: { roomId: roomToJoin },
-        });
+        send({ type: "JOIN_ROOM", payload: { roomId: roomToJoin } });
 
         setRoomId(roomToJoin);
       },
 
       addNode: (node) => {
         const { send } = get();
-        send({
-          type: "ADD_NODE",
-          payload: {
-            node: {
-              ...node,
-              id: `node-${Date.now()}`,
-            },
-          },
-        });
+        send({ type: "ADD_NODE", payload: { node } });
       },
 
       removeNode: (nodeId) => {
         const { send } = get();
-        send({
-          type: "REMOVE_NODE",
-          payload: { nodeId },
-        });
+        send({ type: "REMOVE_NODE", payload: { nodeId } });
       },
 
       updateNodeData: (nodeId, newData) => {
         const { send } = get();
-        send({
-          type: "UPDATE_NODE_DATA",
-          payload: { nodeId, newData },
-        });
+        send({ type: "UPDATE_NODE_DATA", payload: { nodeId, newData } });
       },
 
       moveNode: (nodeId, position) => {
         const { send } = get();
-        send({
-          type: "MOVE_NODE",
-          payload: { nodeId, position },
-        });
+        send({ type: "MOVE_NODE", payload: { nodeId, position } });
       },
 
       setRoomId: (roomId) => set({ roomId }),

@@ -27,7 +27,7 @@ export const ToolsBar = () => {
     onDragend: (data: any) => {
       const { nodes, setNodes } = useReactFlowStore.getState();
 
-      const newNode: AppNode = {
+      const newNode = {
         data: { label: "Block" },
         id: Date.now().toString(),
         position: screenToFlowPosition(data.state.coordinates),
