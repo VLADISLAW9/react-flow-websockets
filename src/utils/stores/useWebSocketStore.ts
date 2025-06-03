@@ -6,14 +6,11 @@ const WEB_SOCKET_URL = "http://localhost:9000";
 
 type WebSocketStatus = "disconnected" | "connecting" | "connected" | "failed";
 
-interface WebSocketState {
+export interface UseWebSocketStore {
   ws: WebSocket | null;
   status: WebSocketStatus;
   roomId: string | number | undefined;
   users: string[];
-}
-
-interface WebSocketStoreAction {
   connect: () => void;
   disconnect: () => void;
   send: (data: any) => void;
@@ -26,171 +23,169 @@ interface WebSocketStoreAction {
   setUsers: (users: string[]) => void;
 }
 
-export const useWebSocketStore = create<WebSocketState & WebSocketStoreAction>(
-  (set, get) => {
-    const handleIncomingMessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
+export const useWebSocketStore = create<UseWebSocketStore>((set, get) => {
+  const handleIncomingMessage = (event: MessageEvent) => {
+    const data = JSON.parse(event.data);
 
-      const { setNodes, setEdges, nodes, edges } = useReactFlowStore.getState();
+    const { setNodes, setEdges, nodes, edges } = useReactFlowStore.getState();
 
-      console.log("Message from server:", data);
+    console.log("Message from server:", data);
 
-      if (data.type === "ROOM_JOINED") {
-        const { flowState } = data.payload;
+    if (data.type === "ROOM_JOINED") {
+      const { flowState } = data.payload;
 
-        set({ roomId: 1 });
-        setNodes(flowState.nodes);
-        setEdges(flowState.edges);
+      set({ roomId: 1 });
+      setNodes(flowState.nodes);
+      setEdges(flowState.edges);
 
-        return;
-      }
+      return;
+    }
 
-      if (data.type === "NODE_ADDED") {
-        setNodes([...nodes, data.payload.node]);
+    if (data.type === "NODE_ADDED") {
+      setNodes([...nodes, data.payload.node]);
 
-        return;
-      }
+      return;
+    }
 
-      if (data.type === "NODE_REMOVED") {
-        setNodes(nodes.filter((n) => n.id !== data.payload.nodeId));
-        setEdges(
-          edges.filter(
-            (edge) =>
-              edge.source !== data.payload.nodeId &&
-              edge.target !== data.payload.nodeId,
-          ),
-        );
+    if (data.type === "NODE_REMOVED") {
+      setNodes(nodes.filter((n) => n.id !== data.payload.nodeId));
+      setEdges(
+        edges.filter(
+          (edge) =>
+            edge.source !== data.payload.nodeId &&
+            edge.target !== data.payload.nodeId,
+        ),
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (data.type === "NODE_DATA_UPDATED") {
-        setNodes(
-          nodes.map((n) =>
-            n.id === data.payload.nodeId
-              ? { ...n, data: { ...n.data, ...data.payload.newData } }
-              : n,
-          ),
-        );
+    if (data.type === "NODE_DATA_UPDATED") {
+      setNodes(
+        nodes.map((node) =>
+          node.id === data.payload.nodeId
+            ? { ...node, data: { ...node.data, ...data.payload.newData } }
+            : node,
+        ),
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (data.type === "NODE_MOVED") {
-        setNodes(
-          nodes.map((n) =>
-            n.id === data.payload.nodeId
-              ? { ...n, position: data.payload.position }
-              : n,
-          ),
-        );
+    if (data.type === "NODE_MOVED") {
+      setNodes(
+        nodes.map((node) =>
+          node.id === data.payload.nodeId
+            ? { ...node, position: data.payload.position }
+            : node,
+        ),
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (data.type === "USER_LEFT") {
-        set((state) => ({
-          users: state.users.filter((user) => user !== data.payload.userId),
-        }));
+    if (data.type === "USER_LEFT") {
+      set((state) => ({
+        users: state.users.filter((user) => user !== data.payload.userId),
+      }));
 
-        return;
-      }
-    };
+      return;
+    }
+  };
 
-    return {
-      ws: null,
-      status: "disconnected",
-      roomId: 1,
-      users: [],
-      error: null,
+  return {
+    ws: null,
+    status: "disconnected",
+    roomId: 1,
+    users: [],
+    error: null,
 
-      connect: () => {
-        const { ws, status } = get();
+    connect: () => {
+      const { ws, status } = get();
 
-        if (ws || status === "connecting") return;
+      if (ws || status === "connecting") return;
 
-        set({ status: "connecting" });
+      set({ status: "connecting" });
 
-        try {
-          const socket = new WebSocket(WEB_SOCKET_URL);
+      try {
+        const socket = new WebSocket(WEB_SOCKET_URL);
 
-          socket.onopen = () => {
-            console.log("WebSocket connected");
-            set({ ws: socket, status: "connected" });
-            get().joinRoom(1);
-          };
+        socket.onopen = () => {
+          console.log("WebSocket connected");
+          set({ ws: socket, status: "connected" });
+          get().joinRoom(1);
+        };
 
-          socket.onmessage = handleIncomingMessage;
+        socket.onmessage = handleIncomingMessage;
 
-          socket.onclose = () => {
-            console.log("WebSocket disconnected");
-            set({ ws: null, status: "disconnected" });
-          };
+        socket.onclose = () => {
+          console.log("WebSocket disconnected");
+          set({ ws: null, status: "disconnected" });
+        };
 
-          socket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            set({ status: "failed" });
-          };
-        } catch (err) {
+        socket.onerror = (error) => {
+          console.error("WebSocket error:", error);
           set({ status: "failed" });
+        };
+      } catch (err) {
+        set({ status: "failed" });
+      }
+    },
+
+    disconnect: () => {
+      const { ws } = get();
+
+      if (!ws) return;
+
+      ws.close();
+      set({ ws: null, status: "disconnected" });
+    },
+
+    send: (data) => {
+      const { ws, status } = get();
+
+      if (ws && status === "connected") {
+        try {
+          ws.send(JSON.stringify(data));
+        } catch (err) {
+          console.error("Failed to send message:", err);
         }
-      },
+      }
+    },
 
-      disconnect: () => {
-        const { ws } = get();
+    joinRoom: (roomId) => {
+      const { send, setRoomId, users } = get();
+      const roomToJoin = roomId || get().roomId;
 
-        if (!ws) return;
+      if (!roomToJoin) return;
 
-        ws.close();
-        set({ ws: null, status: "disconnected" });
-      },
+      send({ type: "JOIN_ROOM", payload: { roomId: roomToJoin } });
 
-      send: (data) => {
-        const { ws, status } = get();
+      set({ users: [...users, Math.random().toString()], roomId: roomToJoin });
+    },
 
-        if (ws && status === "connected") {
-          try {
-            ws.send(JSON.stringify(data));
-          } catch (err) {
-            console.error("Failed to send message:", err);
-          }
-        }
-      },
+    addNode: (node) => {
+      const { send } = get();
+      send({ type: "ADD_NODE", payload: { node } });
+    },
 
-      joinRoom: (roomId) => {
-        const { send, setRoomId } = get();
-        const roomToJoin = roomId || get().roomId;
+    removeNode: (nodeId) => {
+      const { send } = get();
+      send({ type: "REMOVE_NODE", payload: { nodeId } });
+    },
 
-        if (!roomToJoin) return;
+    updateNodeData: (nodeId, newData) => {
+      const { send } = get();
+      send({ type: "UPDATE_NODE_DATA", payload: { nodeId, newData } });
+    },
 
-        send({ type: "JOIN_ROOM", payload: { roomId: roomToJoin } });
+    moveNode: (nodeId, position) => {
+      const { send } = get();
+      send({ type: "MOVE_NODE", payload: { nodeId, position } });
+    },
 
-        setRoomId(roomToJoin);
-      },
+    setRoomId: (roomId) => set({ roomId }),
 
-      addNode: (node) => {
-        const { send } = get();
-        send({ type: "ADD_NODE", payload: { node } });
-      },
-
-      removeNode: (nodeId) => {
-        const { send } = get();
-        send({ type: "REMOVE_NODE", payload: { nodeId } });
-      },
-
-      updateNodeData: (nodeId, newData) => {
-        const { send } = get();
-        send({ type: "UPDATE_NODE_DATA", payload: { nodeId, newData } });
-      },
-
-      moveNode: (nodeId, position) => {
-        const { send } = get();
-        send({ type: "MOVE_NODE", payload: { nodeId, position } });
-      },
-
-      setRoomId: (roomId) => set({ roomId }),
-
-      setUsers: (users) => set({ users }),
-    };
-  },
-);
+    setUsers: (users) => set({ users }),
+  };
+});

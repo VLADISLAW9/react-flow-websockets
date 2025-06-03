@@ -1,10 +1,19 @@
 import { useEffect } from "react";
 import { ReactFlowComponent, ToolsBar } from "./components";
 
-import { useWebSocketStore } from "./utils/stores";
+import { useWebSocketStore, type UseWebSocketStore } from "./utils/stores";
+import { useShallow } from "zustand/shallow";
+
+const WEB_SOCKET_STORE_SELECTOR = (state: UseWebSocketStore) => ({
+  connect: state.connect,
+  disconnect: state.disconnect,
+  status: state.status,
+});
 
 export const App = () => {
-  const { connect, disconnect, status } = useWebSocketStore();
+  const { connect, disconnect, status } = useWebSocketStore(
+    useShallow(WEB_SOCKET_STORE_SELECTOR),
+  );
 
   useEffect(() => {
     connect();

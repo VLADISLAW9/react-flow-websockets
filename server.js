@@ -13,13 +13,25 @@ const initialFlowState = {
   nodes: [
     {
       id: "1",
+      type: "node",
       data: { label: "Start" },
       position: { x: 250, y: 5 },
     },
-    { id: "2", data: { label: "Process" }, position: { x: 100, y: 100 } },
-    { id: "3", data: { label: "Process" }, position: { x: 400, y: 100 } },
+    {
+      id: "2",
+      type: "node",
+      data: { label: "Process" },
+      position: { x: 100, y: 100 },
+    },
+    {
+      id: "3",
+      type: "node",
+      data: { label: "Process" },
+      position: { x: 400, y: 100 },
+    },
     {
       id: "4",
+      type: "node",
       data: { label: "End" },
       position: { x: 250, y: 200 },
     },
@@ -167,6 +179,10 @@ wss.on("connection", (ws) => {
     const node = room.flowState.nodes.find((n) => n.id === nodeId);
 
     if (!node) return;
+
+    if (node.position.x === position.x && node.position.y === position.y) {
+      return;
+    }
 
     node.position = position;
 
