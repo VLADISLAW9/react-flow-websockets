@@ -1,13 +1,9 @@
-import type { AppNode } from "@/utils/types/AppNode";
-import type {
-  Edge,
-  OnConnect,
-  OnEdgesChange,
-  OnNodesChange,
-} from "@xyflow/react";
+import type { Edge, OnConnect, OnEdgesChange, OnNodesChange } from '@xyflow/react';
 
-import { addEdge, applyEdgeChanges, applyNodeChanges } from "@xyflow/react";
-import { create } from "zustand";
+import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
+import { create } from 'zustand';
+
+import type { AppNode } from '@/utils/types/AppNode';
 
 export interface UseReactFlowStore {
   edges: Edge[];
@@ -24,17 +20,17 @@ export const useReactFlowStore = create<UseReactFlowStore>((set, get) => ({
   edges: [],
   onNodesChange: (changes) => {
     set({
-      nodes: applyNodeChanges(changes, get().nodes),
+      nodes: applyNodeChanges(changes, get().nodes)
     });
   },
   onEdgesChange: (changes) => {
     set({
-      edges: applyEdgeChanges(changes, get().edges),
+      edges: applyEdgeChanges(changes, get().edges)
     });
   },
   onConnect: (connection) => {
     set({
-      edges: addEdge(connection, get().edges),
+      edges: addEdge(connection, get().edges)
     });
   },
   setNodes: (nodes) => {
@@ -42,5 +38,5 @@ export const useReactFlowStore = create<UseReactFlowStore>((set, get) => ({
   },
   setEdges: (edges) => {
     set({ edges });
-  },
+  }
 }));

@@ -1,1 +1,1 @@
-export * from "./MaterialSymbolsStopOutline";
+export * from './MaterialSymbolsStopOutline';

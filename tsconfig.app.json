@@ -20,10 +20,10 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
-    "skipLibCheck": true,
     "noUnusedParameters": true,
     "noEmit": true,
     "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"]
