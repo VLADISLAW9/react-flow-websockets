@@ -73,15 +73,12 @@ export const initSocket = () => {
       setUsers(users.filter((user) => user !== data.payload.userId));
   };
 
-  socket.onerror = (error) => {
-    console.error("[WebSocket] Error:", error);
-  };
+  socket.onerror = (error) => console.error("[WebSocket] Error:", error);
 
-  socket.onclose = (event) => {
+  socket.onclose = (event) =>
     console.log(
       `[WebSocket] Closed with code ${event.code}, reason: ${event.reason}`,
     );
-  };
 };
 
 export const socketActions = {
