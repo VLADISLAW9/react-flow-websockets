@@ -11,7 +11,7 @@ export interface SocketMessage {
     | "USER_LEFT";
 }
 
-const socket = new WebSocket("ws://localhost:9000");
+export const socket = new WebSocket("ws://localhost:9000");
 
 export const initSocket = () => {
   console.log("[WebSocket] Connecting...");
