@@ -1,21 +1,22 @@
-import type { ElementType, SVGProps } from 'react';
+import type { ElementType, SVGProps } from "react";
 
-import { useDragAndDrop } from '@formkit/drag-and-drop/react';
-import { useReactFlow } from '@xyflow/react';
+import { useDragAndDrop } from "@formkit/drag-and-drop/react";
+import { useReactFlow } from "@xyflow/react";
 
-import { useReactFlowStore } from '@/utils/stores';
+import { useReactFlowStore } from "@/utils/stores";
 
-import { MaterialSymbolsStopOutline } from '../icons';
-import { ToolsBarItem } from './components';
+import { MaterialSymbolsStopOutline } from "../icons";
+import { ToolsBarItem } from "./components";
+import { socketActions } from "@/utils/lib/socket";
 
 const TOOLS_BAR_ITEMS: {
   name: string;
   Icon: ElementType<SVGProps<SVGSVGElement>>;
 }[] = [
   {
-    name: 'Блок',
-    Icon: MaterialSymbolsStopOutline
-  }
+    name: "Блок",
+    Icon: MaterialSymbolsStopOutline,
+  },
 ];
 
 export const ToolsBar = () => {
@@ -27,18 +28,22 @@ export const ToolsBar = () => {
       const { nodes, setNodes } = useReactFlowStore.getState();
 
       const newNode = {
-        data: { label: 'Block' },
-        type: 'node',
+        data: { label: "Block" },
+        type: "node",
         id: Date.now().toString(),
-        position: screenToFlowPosition(data.state.coordinates)
+        position: screenToFlowPosition(data.state.coordinates),
       };
 
       setNodes([...nodes, newNode]);
-    }
+      socketActions.addNode(newNode);
+    },
   });
 
   return (
-    <ul ref={ref} className=' px-10 border-b-gray-100 py-5 shadow-xl flex flex-col gap-4'>
+    <ul
+      ref={ref}
+      className=" px-10 border-b-gray-100 py-5 shadow-xl flex flex-col gap-4"
+    >
       {TOOLS_BAR_ITEMS.map((toolsBarItem) => (
         <ToolsBarItem key={toolsBarItem.name} {...toolsBarItem} />
       ))}
