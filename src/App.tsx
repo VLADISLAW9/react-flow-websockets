@@ -15,6 +15,7 @@ export const App = () => {
   return (
     <div className="flex h-screen">
       <ToolsBar />
+
       <ReactFlowComponent />
     </div>
   );

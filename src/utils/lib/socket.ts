@@ -1,8 +1,10 @@
 import { useReactFlowStore, useRoomStore } from "../stores";
+import type { User } from "../types";
 
 export interface SocketMessage {
   payload: any;
   type:
+    | "CURSOR_MOVED"
     | "NODE_ADDED"
     | "NODE_DATA_UPDATED"
     | "NODE_MOVED"
@@ -18,23 +20,52 @@ export const initSocket = () => {
 
   socket.onopen = () => {
     console.log("[WebSocket] Connected");
-    socketActions.joinRoom("1");
+
+    socket.send(
+      JSON.stringify({ type: "JOIN_ROOM", payload: { roomId: "1" } }),
+    );
+  };
+
+  socket.onerror = (error) => {
+    console.log(`[WebSocket] error ${error}`);
   };
 
   socket.onmessage = (event) => {
     const data: SocketMessage = JSON.parse(event.data);
     const { setNodes, setEdges, nodes, edges } = useReactFlowStore.getState();
-    const { setRoomId, setUsers, users } = useRoomStore.getState();
+
+    const { setRoomId, setUsers, users, cursors, setCursors } =
+      useRoomStore.getState();
 
     console.log("[WebSocket] Message received:", data);
 
     if (data.type === "ROOM_JOINED") {
+      const users = (data.payload.users as User[]).filter(
+        (user) => user.id !== data.payload.currentUser.id,
+      );
+
       setRoomId("1");
-      setUsers(data.payload.clients);
+      setUsers(users);
       setNodes(data.payload.flowState.nodes);
       setEdges(data.payload.flowState.edges);
+      setCursors(
+        users.map((user: User) => ({
+          userId: user.id,
+          position: { x: 0, y: 0 },
+          color: user.color,
+          name: user.name,
+          lastUpdated: Date.now(),
+        })),
+      );
       return;
     }
+
+    if (data.type === "CURSOR_MOVED")
+      return setCursors(
+        cursors.map((cursor) =>
+          cursor.userId === data.payload.userId ? data.payload : cursor,
+        ),
+      );
 
     if (data.type === "NODE_ADDED")
       return setNodes([...nodes, data.payload.node]);
@@ -69,16 +100,14 @@ export const initSocket = () => {
         ),
       );
 
-    if (data.type === "USER_LEFT")
-      setUsers(users.filter((user) => user !== data.payload.userId));
+    if (data.type === "USER_LEFT") {
+      setUsers(users.filter((user) => user.id !== data.payload.userId));
+      setCursors(
+        cursors.filter((cursor) => cursor.userId !== data.payload.userId),
+      );
+      return;
+    }
   };
-
-  socket.onerror = (error) => console.error("[WebSocket] Error:", error);
-
-  socket.onclose = (event) =>
-    console.log(
-      `[WebSocket] Closed with code ${event.code}, reason: ${event.reason}`,
-    );
 };
 
 export const socketActions = {
@@ -87,6 +116,9 @@ export const socketActions = {
 
   removeNode: (nodeId: string) =>
     socket.send(JSON.stringify({ type: "REMOVE_NODE", payload: { nodeId } })),
+
+  moveCursor: (position: { x: number; y: number }) =>
+    socket.send(JSON.stringify({ type: "MOVE_CURSOR", payload: { position } })),
 
   joinRoom: (roomId: string) =>
     socket.send(JSON.stringify({ type: "JOIN_ROOM", payload: { roomId } })),

@@ -1,19 +1,21 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-export interface UseRoomStore {
+import type { User, UserCursor } from "../types";
+
+interface UseRoomStore {
+  cursors: UserCursor[];
   roomId: string | null;
-  users: string[];
+  users: User[];
+  setCursors: (cursors: UserCursor[]) => void;
   setRoomId: (roomId: string) => void;
-  setUsers: (users: string[]) => void;
+  setUsers: (users: User[]) => void;
 }
 
 export const useRoomStore = create<UseRoomStore>((set) => ({
   roomId: null,
   users: [],
-  setRoomId: (roomId) => {
-    set({ roomId });
-  },
-  setUsers: (users) => {
-    set({ users });
-  }
+  cursors: [],
+  setCursors: (cursors) => set({ cursors }),
+  setRoomId: (roomId) => set({ roomId }),
+  setUsers: (users) => set({ users }),
 }));
