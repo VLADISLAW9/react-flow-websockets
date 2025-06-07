@@ -1,19 +1,21 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
-import { ReactFlowComponent, ToolsBar } from "./components";
-import { initSocket, socket } from "./utils/lib";
+import { ReactFlowComponent, ToolsBar } from './components';
+import { socket, socketActions } from './utils/lib';
 
 export const App = () => {
   useEffect(() => {
-    initSocket();
+    socket.onopen = () => socketActions.joinRoom('1');
+
+    socket.onerror = (error) => console.log(`[WebSocket] error ${error}`);
 
     return () => {
-      if (socket.readyState === WebSocket.OPEN) socket.close();
+      socket.close = () => console.log(`[WebSocket] close`);
     };
   }, []);
 
   return (
-    <div className="flex h-screen">
+    <div className='flex h-screen'>
       <ToolsBar />
 
       <ReactFlowComponent />
