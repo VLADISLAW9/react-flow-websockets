@@ -1,2 +1,2 @@
-export * from "./MaterialSymbolsAccountCircle";
-export * from "./MaterialSymbolsStopOutline";
+export * from './MaterialSymbolsAccountCircle';
+export * from './MaterialSymbolsStopOutline';

@@ -1,46 +1,48 @@
+import type {OnNodeDrag} from '@xyflow/react';
+
+import { useDidUpdate, useMouse } from '@siberiacancode/reactuse';
 import {
   Background,
   Controls,
   MiniMap,
+  
   ReactFlow,
-  useReactFlow,
-  type OnNodeDrag,
-} from "@xyflow/react";
-import { useShallow } from "zustand/shallow";
+  useReactFlow
+} from '@xyflow/react';
+import { useShallow } from 'zustand/shallow';
 
-import { useReactFlowStore, useRoomStore } from "@/utils/stores";
+import type { AppNode } from '@/utils/types/AppNode';
 
-import { Node } from "./components";
+import { socketActions } from '@/utils/lib/socket';
+import { useReactFlowStore, useRoomStore } from '@/utils/stores';
 
-import "@xyflow/react/dist/style.css";
-import { socketActions } from "@/utils/lib/socket";
-import type { AppNode } from "@/utils/types/AppNode";
-import { useDidUpdate, useMouse } from "@siberiacancode/reactuse";
-import { MdiCursorDefault } from "../icons/MdiCursorDefault";
+import { MdiCursorDefault } from '../icons/MdiCursorDefault';
+import { Node } from './components';
+
+import '@xyflow/react/dist/style.css';
 
 const NODE_TYPES = {
-  node: Node,
+  node: Node
 };
 
 export const ReactFlowComponent = () => {
   const { ref, x, y } = useMouse<HTMLDivElement>();
   const { screenToFlowPosition } = useReactFlow();
 
-  const { edges, nodes, onConnect, onEdgesChange, onNodesChange } =
-    useReactFlowStore(
-      useShallow((state) => ({
-        edges: state.edges,
-        nodes: state.nodes,
-        onConnect: state.onConnect,
-        onEdgesChange: state.onEdgesChange,
-        onNodesChange: state.onNodesChange,
-      })),
-    );
+  const { edges, nodes, onConnect, onEdgesChange, onNodesChange } = useReactFlowStore(
+    useShallow((state) => ({
+      edges: state.edges,
+      nodes: state.nodes,
+      onConnect: state.onConnect,
+      onEdgesChange: state.onEdgesChange,
+      onNodesChange: state.onNodesChange
+    }))
+  );
 
   const { cursors } = useRoomStore(
     useShallow((state) => ({
-      cursors: state.cursors,
-    })),
+      cursors: state.cursors
+    }))
   );
 
   const onNodeDrag: OnNodeDrag<AppNode> = (_, node) =>
@@ -55,24 +57,24 @@ export const ReactFlowComponent = () => {
       ref={ref}
       edges={edges}
       nodes={nodes}
-      onNodeDrag={onNodeDrag}
       nodeTypes={NODE_TYPES}
       onConnect={onConnect}
       onEdgesChange={onEdgesChange}
+      onNodeDrag={onNodeDrag}
       onNodesChange={onNodesChange}
     >
       {cursors.map((cursor) => (
         <div
           key={cursor.userId}
-          className="absolute transition-transform duration-100 z-10"
           style={{
             transform: `translate(${cursor.position.x}px, ${cursor.position.y}px)`,
-            color: cursor.color,
+            color: cursor.color
           }}
+          className='absolute transition-transform duration-100 z-10'
         >
-          <div className="flex items-center">
+          <div className='flex items-center'>
             <MdiCursorDefault color={cursor.color} />
-            <span className="ml-1 text-xs">{cursor.name}</span>
+            <span className='ml-1 text-xs'>{cursor.name}</span>
           </div>
         </div>
       ))}
