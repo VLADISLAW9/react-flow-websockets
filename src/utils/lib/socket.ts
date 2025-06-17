@@ -1,3 +1,5 @@
+import * as Y from 'yjs';
+
 import type { User } from '../types';
 
 import { useProfileStore, useReactFlowStore, useRoomStore } from '../stores';
@@ -16,8 +18,12 @@ export interface SocketMessage {
 
 export const socket = new WebSocket('ws://localhost:9000');
 
+const yDoc = new Y.Doc();
+export const yMap = yDoc.getMap();
+
 socket.onmessage = (event) => {
   const data: SocketMessage = JSON.parse(event.data);
+
   const { setNodes, setEdges, nodes, edges } = useReactFlowStore.getState();
   const { setRoomId, setUsers, users, cursors, setCursors } = useRoomStore.getState();
   const { setProfile } = useProfileStore.getState();
