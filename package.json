@@ -6,23 +6,32 @@
   "scripts": {
     "dev": "vite",
     "server": "node server.js",
+    "dev:server": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "tsc -b && vite build",
     "pretty": "prettier --write . && eslint --fix",
     "preview": "vite preview"
   },
   "dependencies": {
     "@formkit/drag-and-drop": "~0.3.4",
-    "@siberiacancode/reactuse": "^0.2.3",
+    "@mantine/core": "^8.1.1",
+    "@mantine/hooks": "^8.1.1",
+    "@siberiacancode/reactuse": "^0.2.11",
     "@tailwindcss/vite": "^4.1.8",
     "@xyflow/react": "^12.6.4",
+    "concurrently": "^9.1.2",
     "express": "^5.1.0",
     "http": "^0.0.1-security",
     "path": "^0.12.7",
+    "quill": "^2.0.3",
+    "quill-cursors": "^4.0.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-yjs": "^2.0.1",
     "tailwindcss": "^4.1.8",
     "uuid": "^11.1.0",
     "ws": "^8.18.2",
+    "y-quill": "^1.0.0",
+    "yjs": "^13.6.27",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -38,6 +47,9 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "postcss": "^8.5.6",
+    "postcss-preset-mantine": "^1.17.0",
+    "postcss-simple-vars": "^7.0.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5"
