@@ -1,4 +1,5 @@
 import express from 'express';
+import { Buffer } from 'node:buffer';
 import http from 'node:http';
 import { v4 as uuidv4 } from 'uuid';
 import { WebSocketServer } from 'ws';
@@ -312,8 +313,15 @@ wss.on('connection', (ws) => {
   };
 
   ws.on('message', (message) => {
+    if (typeof message !== 'string' && !Buffer.isBuffer(message)) {
+      console.warn('Получены неподдерживаемые данные:', message);
+      return;
+    }
+
+    const text = message.toString();
+
     try {
-      const data = JSON.parse(message.toString());
+      const data = JSON.parse(text);
 
       switch (data.type) {
         case 'JOIN_ROOM':
@@ -339,7 +347,7 @@ wss.on('connection', (ws) => {
           console.warn('Неизвестный тип сообщения:', data.type);
       }
     } catch (error) {
-      console.error('Ошибка обработки сообщения:', error);
+      console.error('Ошибка обработки JSON-сообщения:', error);
     }
   });
 

@@ -1,19 +1,15 @@
-import type {OnNodeDrag} from '@xyflow/react';
+import type { OnNodeDrag } from '@xyflow/react';
 
 import { useDidUpdate, useMouse } from '@siberiacancode/reactuse';
-import {
-  Background,
-  Controls,
-  MiniMap,
-  
-  ReactFlow,
-  useReactFlow
-} from '@xyflow/react';
+import { Background, Controls, MiniMap, ReactFlow, useReactFlow } from '@xyflow/react';
+import { useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import type { AppNode } from '@/utils/types/AppNode';
 
 import { socketActions } from '@/utils/lib/socket';
+import { bindReactFlow } from '@/utils/lib/yjs-bindings';
+import { yDoc } from '@/utils/lib/yjs-provider';
 import { useReactFlowStore, useRoomStore } from '@/utils/stores';
 
 import { MdiCursorDefault } from '../icons/MdiCursorDefault';
@@ -51,6 +47,12 @@ export const ReactFlowComponent = () => {
   useDidUpdate(() => {
     socketActions.moveCursor(screenToFlowPosition({ x, y }));
   }, [x, y]);
+
+  useEffect(() => {
+    const { setNodes, setEdges } = useReactFlowStore.getState();
+    const unbind = bindReactFlow(yDoc, setNodes, setEdges);
+    return () => unbind();
+  }, []);
 
   return (
     <ReactFlow
