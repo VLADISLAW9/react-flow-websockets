@@ -5,8 +5,7 @@ import { useReactFlow } from '@xyflow/react';
 import { useShallow } from 'zustand/shallow';
 
 import { socketActions } from '@/utils/lib/socket';
-import { yDoc } from '@/utils/lib/yjs-provider';
-import { useReactFlowStore, useRoomStore } from '@/utils/stores';
+import { useRoomStore } from '@/utils/stores';
 
 import { MaterialSymbolsAccountCircle, MaterialSymbolsStopOutline } from '../icons';
 import { ToolsBarItem } from './components';
@@ -30,19 +29,18 @@ export const ToolsBar = () => {
     nativeDrag: false,
     onDragend: (data: any) => {
       const newNode = {
-        data: { label: 'Block' },
-        type: 'node',
         id: Date.now().toString(),
+        type: 'node',
+        data: { label: 'Block' },
         position: screenToFlowPosition(data.state.coordinates)
       };
 
-      yDoc.getArray('nodes').push([newNode]);
       socketActions.addNode(newNode);
     }
   });
 
   return (
-    <div className=' px-10 w-[250px] border-b-gray-100 py-5 justify-between shadow-xl flex flex-col gap-4'>
+    <div className='px-10 w-[250px] border-b-gray-100 py-5 justify-between shadow-xl flex flex-col gap-4'>
       <ul ref={ref}>
         {TOOLS_BAR_ITEMS.map((toolsBarItem) => (
           <ToolsBarItem key={toolsBarItem.name} {...toolsBarItem} />

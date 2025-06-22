@@ -8,11 +8,15 @@ export const App = () => {
   const nodeDrawerStore = useNodeDrawerStore();
 
   useEffect(() => {
-    socket.onopen = () => socketActions.joinRoom('1');
-    socket.onerror = (error) => console.log(`[WebSocket] error ${error}`);
+    socket.onopen = () => {
+      console.log('[WebSocket] opened');
+      socketActions.joinRoom('1');
+    };
+
+    socket.onerror = (error) => console.error('[WebSocket] error', error);
 
     return () => {
-      socket.close = () => console.log(`[WebSocket] close`);
+      socket.onclose = () => console.warn('[WebSocket] closed');
     };
   }, []);
 

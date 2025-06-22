@@ -10,6 +10,7 @@ import './index.css';
 
 const init = () => {
   const root = createRoot(document.getElementById('root')!);
+
   const theme = createTheme({
     fontFamily: 'Open Sans, sans-serif',
     primaryColor: 'cyan'
