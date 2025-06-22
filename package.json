@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "server": "node server.js",
     "dev:server": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "tsc -b && vite build",
@@ -17,6 +17,9 @@
     "@mantine/hooks": "^8.1.1",
     "@siberiacancode/reactuse": "^0.2.11",
     "@tailwindcss/vite": "^4.1.8",
+    "@tiptap/extension-collaboration": "^2.22.3",
+    "@tiptap/extension-collaboration-cursor": "^2.22.3",
+    "@tiptap/react": "^2.22.3",
     "@xyflow/react": "^12.6.4",
     "concurrently": "^9.1.2",
     "express": "^5.1.0",

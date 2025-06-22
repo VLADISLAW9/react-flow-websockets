@@ -318,7 +318,8 @@ wss.on('connection', (ws) => {
 });
 
 const PORT = 9000;
+const HOST = '0.0.0.0';
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
 });

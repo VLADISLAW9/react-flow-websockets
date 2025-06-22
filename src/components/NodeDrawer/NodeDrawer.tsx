@@ -1,7 +1,10 @@
-import { Drawer, Input } from '@mantine/core';
-import { useField } from '@siberiacancode/reactuse';
+import { Drawer, Input, Textarea } from '@mantine/core';
 
 import type { AppNode } from '@/utils/types';
+
+import { socketActions } from '@/utils/lib';
+import { useReactFlowStore } from '@/utils/stores';
+import type { ChangeEvent } from 'react';
 
 interface NodeDrawerProps {
   node: AppNode;
@@ -9,11 +12,19 @@ interface NodeDrawerProps {
 }
 
 export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
-  const labelInput = useField({ initialValue: node.data.label });
+  const { setNodeData } = useReactFlowStore();
+
+  const onNodeLabelChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const label = event.target.value;
+
+    setNodeData(node.id, { label });
+
+    socketActions.updateNodeData(node.id, { ...node.data, label });
+  };
 
   return (
     <Drawer withOverlay={false} onClose={close} opened={!!node} position='right'>
-      <Input {...labelInput.register({ maxLength: { value: 2, message: 'min length is 2' } })} />
+      <Textarea value={node.data.label} onChange={onNodeLabelChange} />
     </Drawer>
   );
 };

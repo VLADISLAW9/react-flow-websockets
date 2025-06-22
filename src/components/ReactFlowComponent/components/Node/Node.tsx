@@ -7,7 +7,7 @@ import type { AppNode } from '@/utils/types/AppNode';
 
 import { useNodeDrawerStore } from '@/utils/stores';
 
-export const Node = ({ data, isConnectable, ...props }: NodeProps<AppNode>) => {
+export const Node = ({ id, data, isConnectable }: NodeProps<AppNode>) => {
   const nodeDrawerStore = useNodeDrawerStore();
 
   return (
@@ -20,19 +20,7 @@ export const Node = ({ data, isConnectable, ...props }: NodeProps<AppNode>) => {
       />
       <div className=' w-20 h-30 drop-shadow-xl p-1 bg-amber-200'>
         <h1>{data.label}</h1>
-        <Button
-          size='compact-xs'
-          onClick={() =>
-            nodeDrawerStore.open({
-              data,
-              position: {
-                x: props.positionAbsoluteX,
-                y: props.positionAbsoluteY
-              },
-              ...props
-            })
-          }
-        >
+        <Button size='compact-xs' onClick={() => nodeDrawerStore.open(id)}>
           {'>'}
         </Button>
       </div>

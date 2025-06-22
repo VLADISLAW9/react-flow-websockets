@@ -24,7 +24,7 @@ export const yDoc = new Y.Doc();
 export const yNodes = yDoc.getArray<AppNode>('nodes');
 export const yEdges = yDoc.getArray<Edge>('edges');
 
-export const socket = new WebSocket('ws://localhost:9000');
+export const socket = new WebSocket('ws://192.168.0.106:9000');
 
 socket.onmessage = (event) => {
   try {

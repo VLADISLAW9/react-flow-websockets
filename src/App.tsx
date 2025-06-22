@@ -2,10 +2,13 @@ import { useEffect } from 'react';
 
 import { NodeDrawer, ReactFlowComponent, ToolsBar } from './components';
 import { socket, socketActions } from './utils/lib';
-import { useNodeDrawerStore } from './utils/stores';
+import { useNodeDrawerStore, useReactFlowStore } from './utils/stores';
 
 export const App = () => {
+  const reactFlowStore = useReactFlowStore();
   const nodeDrawerStore = useNodeDrawerStore();
+
+  const nodeDrawerData = reactFlowStore.getNodeById(nodeDrawerStore.nodeId);
 
   useEffect(() => {
     socket.onopen = () => {
@@ -24,9 +27,7 @@ export const App = () => {
     <div className='flex h-screen'>
       <ToolsBar />
       <ReactFlowComponent />
-      {nodeDrawerStore.node && (
-        <NodeDrawer close={nodeDrawerStore.close} node={nodeDrawerStore.node} />
-      )}
+      {nodeDrawerData && <NodeDrawer close={nodeDrawerStore.close} node={nodeDrawerData} />}
     </div>
   );
 };

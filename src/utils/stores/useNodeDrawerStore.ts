@@ -3,13 +3,14 @@ import { create } from 'zustand';
 import type { AppNode } from '../types';
 
 interface UseNodeDrawerStore {
-  node: AppNode | null;
+  nodeId: AppNode['id'] | null;
+
   close: () => void;
-  open: (node: AppNode) => void;
+  open: (nodeId: AppNode['id']) => void;
 }
 
 export const useNodeDrawerStore = create<UseNodeDrawerStore>((set) => ({
-  node: null,
-  close: () => set({ node: null }),
-  open: (node) => set({ node })
+  nodeId: null,
+  close: () => set({ nodeId: null }),
+  open: (nodeId) => set({ nodeId })
 }));
