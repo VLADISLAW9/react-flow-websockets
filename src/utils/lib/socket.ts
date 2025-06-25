@@ -6,7 +6,7 @@ import type { AppNode } from '@/utils/types/AppNode';
 
 import type { User } from '../types';
 
-import { useProfileStore, useReactFlowStore, useRoomStore } from '../stores';
+import { useReactFlowStore, useRoomStore } from '../stores';
 
 export interface SocketMessage {
   payload: any;
@@ -30,24 +30,25 @@ socket.onmessage = (event) => {
   try {
     const data: SocketMessage = JSON.parse(event.data);
 
-    const { setRoomId, setUsers, users, cursors, setCursors } = useRoomStore.getState();
-    const { setProfile } = useProfileStore.getState();
+    const { setCurrentUser, setRoomId, setUsers, setCursors, cursors, users } =
+      useRoomStore.getState();
 
     if (data.type === 'ROOM_JOINED') {
       const currentUser = data.payload.currentUser as User;
       const users = data.payload.users as User[];
 
-      setProfile(currentUser);
+      setCurrentUser(currentUser);
       setRoomId(data.payload.roomId);
       setUsers(users);
+
       setCursors(
         users
-          .filter((user) => user.id !== currentUser.id)
-          .map((user) => ({
-            userId: user.id,
+          .filter((u) => u.id !== currentUser.id)
+          .map((u) => ({
+            userId: u.id,
             position: { x: 0, y: 0 },
-            color: user.color,
-            name: user.name,
+            color: u.color,
+            name: u.name,
             lastUpdated: Date.now()
           }))
       );
@@ -82,10 +83,8 @@ socket.onmessage = (event) => {
 
     if (data.type === 'NODE_DATA_UPDATED') {
       const index = yNodes.toArray().findIndex((n) => n.id === data.payload.nodeId);
-
       if (index !== -1) {
         const existing = yNodes.get(index);
-
         yNodes.delete(index, 1);
         yNodes.insert(index, [
           { ...existing, data: { ...existing.data, ...data.payload.newData } }
@@ -97,10 +96,8 @@ socket.onmessage = (event) => {
 
     if (data.type === 'NODE_MOVED') {
       const index = yNodes.toArray().findIndex((n) => n.id === data.payload.nodeId);
-
       if (index !== -1) {
         const existing = yNodes.get(index);
-
         yNodes.delete(index, 1);
         yNodes.insert(index, [{ ...existing, position: data.payload.position }]);
       }
@@ -134,7 +131,6 @@ export const socketActions = {
     if (index !== -1) yNodes.delete(index, 1);
 
     const edges = yEdges.toArray().filter((e) => e.source !== nodeId && e.target !== nodeId);
-
     yEdges.delete(0, yEdges.length);
     yEdges.push(edges);
 
@@ -143,10 +139,8 @@ export const socketActions = {
 
   moveNode: (nodeId: string, position: { x: number; y: number }) => {
     const index = yNodes.toArray().findIndex((n) => n.id === nodeId);
-
     if (index !== -1) {
       const existing = yNodes.get(index);
-
       yNodes.delete(index, 1);
       yNodes.insert(index, [{ ...existing, position }]);
     }
@@ -156,10 +150,8 @@ export const socketActions = {
 
   updateNodeData: (nodeId: string, newData: any) => {
     const index = yNodes.toArray().findIndex((n) => n.id === nodeId);
-
     if (index !== -1) {
       const existing = yNodes.get(index);
-
       yNodes.delete(index, 1);
       yNodes.insert(index, [{ ...existing, data: { ...existing.data, ...newData } }]);
     }
@@ -167,22 +159,37 @@ export const socketActions = {
     socket.send(JSON.stringify({ type: 'UPDATE_NODE_DATA', payload: { nodeId, newData } }));
   },
 
-  moveCursor: (position: { x: number; y: number }) =>
-    socket.send(JSON.stringify({ type: 'MOVE_CURSOR', payload: { position } })),
+  moveCursor: (position: { x: number; y: number }) => {
+    const user = useRoomStore.getState().currentUser;
+    if (!user) return;
+    socket.send(
+      JSON.stringify({
+        type: 'MOVE_CURSOR',
+        payload: {
+          userId: user.id,
+          position,
+          name: user.name,
+          color: user.color,
+          lastUpdated: Date.now()
+        }
+      })
+    );
+  },
 
   joinRoom: (roomId: string) =>
     socket.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomId } })),
 
-  leaveRoom: (userId: number) =>
-    socket.send(JSON.stringify({ type: 'LEAVE_ROOM', payload: { userId } }))
+  leaveRoom: () => {
+    const user = useRoomStore.getState().currentUser;
+    if (!user) return;
+    socket.send(JSON.stringify({ type: 'LEAVE_ROOM', payload: { userId: user.id } }));
+  }
 };
 
 yNodes.observeDeep(() => {
-  const { setNodes } = useReactFlowStore.getState();
-  setNodes(yNodes.toArray());
+  useReactFlowStore.getState().setNodes(yNodes.toArray());
 });
 
 yEdges.observeDeep(() => {
-  const { setEdges } = useReactFlowStore.getState();
-  setEdges(yEdges.toArray());
+  useReactFlowStore.getState().setEdges(yEdges.toArray());
 });

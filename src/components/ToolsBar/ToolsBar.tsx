@@ -1,4 +1,4 @@
-import type { ElementType, SVGProps } from 'react';
+import { use, type ElementType, type SVGProps } from 'react';
 
 import { useDragAndDrop } from '@formkit/drag-and-drop/react';
 import { useReactFlow } from '@xyflow/react';
@@ -23,7 +23,7 @@ const TOOLS_BAR_ITEMS: {
 export const ToolsBar = () => {
   const { screenToFlowPosition } = useReactFlow();
 
-  const { users } = useRoomStore(useShallow((state) => ({ users: state.users })));
+  const { users, currentUser } = useRoomStore();
 
   const [ref] = useDragAndDrop<HTMLUListElement>(TOOLS_BAR_ITEMS, {
     nativeDrag: false,
@@ -40,7 +40,7 @@ export const ToolsBar = () => {
   });
 
   return (
-    <div className='px-10 w-[250px] border-b-gray-100 py-5 justify-between shadow-xl flex flex-col gap-4'>
+    <div className='px-10 w-[270px] border-b-gray-100 py-5 justify-between shadow-xl flex flex-col gap-4'>
       <ul ref={ref}>
         {TOOLS_BAR_ITEMS.map((toolsBarItem) => (
           <ToolsBarItem key={toolsBarItem.name} {...toolsBarItem} />
@@ -50,7 +50,9 @@ export const ToolsBar = () => {
         {users.map((user) => (
           <div key={user.id} className='flex items-center gap-1'>
             <MaterialSymbolsAccountCircle color={user.color} />
-            <p className={`text-xs text-[${user.color}]`}>{user.name}</p>
+            <p className={`text-xs text-[${user.color}]`}>
+              {user.name} {currentUser?.id === user.id && '(Вы)'}
+            </p>
           </div>
         ))}
       </ul>
