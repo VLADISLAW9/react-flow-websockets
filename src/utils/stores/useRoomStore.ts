@@ -2,130 +2,125 @@ import { create } from 'zustand';
 
 import type { AppNode, User, UserCursor } from '../types';
 
-interface ActivityNodeInput {
+interface ActivityInput {
   inputName: string;
   users: User[];
 }
 
 interface ActivityNode {
-  activityInputs: ActivityNodeInput[];
   id: AppNode['id'];
+  inputs: ActivityInput[];
   users: User[];
 }
 
 interface UseRoomStore {
   activityNodes: ActivityNode[];
   currentUser: User | null;
-
   cursors: UserCursor[];
   roomId: string | null;
-
   users: User[];
-  activateNode: (nodeId: AppNode['id']) => void;
 
-  activateNodeInput: (nodeId: AppNode['id'], inputName: string) => void;
-  diactivateNode: (nodeId: AppNode['id']) => void;
+  addNodeActiveUser: (nodeId: string, user: User) => void;
+  addNodeInputActiveUser: (nodeId: string, inputName: string, user: User) => void;
+  removeNodeActiveUser: (nodeId: string, userId: string) => void;
+  removeNodeInputActiveUser: (nodeId: string, inputName: string, userId: string) => void;
 
-  diactivateNodeInput: (nodeId: AppNode['id'], inputName: string) => void;
   setCurrentUser: (user: User) => void;
   setCursors: (cursors: UserCursor[]) => void;
+
   setRoomId: (roomId: string) => void;
   setUsers: (users: User[]) => void;
 }
 
-export const useRoomStore = create<UseRoomStore>((set, get) => ({
+export const useRoomStore = create<UseRoomStore>((set) => ({
   currentUser: null,
-  setCurrentUser: (user) => set({ currentUser: user }),
-
   roomId: null,
-  setRoomId: (roomId) => set({ roomId }),
-
   users: [],
-  setUsers: (users) => set({ users }),
-
   cursors: [],
-  setCursors: (cursors) => set({ cursors }),
-
   activityNodes: [],
 
-  activateNode: (nodeId) => {
-    const user = get().currentUser;
-    if (!user) return;
+  setCurrentUser: (user) => set({ currentUser: user }),
+  setRoomId: (roomId) => set({ roomId }),
+  setUsers: (users) => set({ users }),
+  setCursors: (cursors) => set({ cursors }),
 
+  addNodeActiveUser: (nodeId, user) => {
     set((state) => {
-      const existing = state.activityNodes.find((n) => n.id === nodeId);
-      if (existing) {
-        const already = existing.users.find((u) => u.id === user.id);
-        if (!already) existing.users.push(user);
+      const node = state.activityNodes.find((n) => n.id === nodeId);
+
+      if (node) {
+        if (!node.users.find((u) => u.id === user.id)) {
+          node.users.push(user);
+        }
+
         return { activityNodes: [...state.activityNodes] };
+      } else {
+        return {
+          activityNodes: [...state.activityNodes, { id: nodeId, users: [user], inputs: [] }]
+        };
       }
-      return {
-        activityNodes: [...state.activityNodes, { id: nodeId, users: [user], activityInputs: [] }]
-      };
     });
   },
 
-  activateNodeInput: (nodeId, inputName) => {
-    const user = get().currentUser;
-    if (!user) return;
-
+  removeNodeActiveUser: (nodeId, userId) => {
     set((state) => {
       const node = state.activityNodes.find((n) => n.id === nodeId);
-      if (!node) return state;
 
-      const input = node.activityInputs.find((i) => i.inputName === inputName);
-      if (input) {
-        const already = input.users.find((u) => u.id === user.id);
-        if (!already) input.users.push(user);
-      } else {
-        node.activityInputs.push({ inputName, users: [user] });
+      if (!node) return {};
+
+      node.users = node.users.filter((u) => u.id !== userId);
+
+      if (node.users.length === 0 && node.inputs.length === 0) {
+        return { activityNodes: state.activityNodes.filter((n) => n.id !== nodeId) };
       }
 
       return { activityNodes: [...state.activityNodes] };
     });
   },
 
-  diactivateNode: (nodeId) => {
-    const userId = get().currentUser?.id;
-    if (!userId) return;
+  addNodeInputActiveUser: (nodeId, inputName, user) => {
+    set((state) => {
+      let node = state.activityNodes.find((n) => n.id === nodeId);
 
-    set((state) => ({
-      activityNodes: state.activityNodes
-        .map((n) =>
-          n.id === nodeId
-            ? {
-                ...n,
-                users: n.users.filter((u) => u.id !== userId),
-                activityInputs: n.activityInputs.map((i) => ({
-                  ...i,
-                  users: i.users.filter((u) => u.id !== userId)
-                }))
-              }
-            : n
-        )
-        .filter((n) => n.users.length > 0 || n.activityInputs.length > 0)
-    }));
+      if (!node) {
+        node = { id: nodeId, users: [], inputs: [] };
+        state.activityNodes.push(node);
+      }
+
+      let input = node.inputs.find((i) => i.inputName === inputName);
+
+      if (!input) {
+        input = { inputName, users: [] };
+        node.inputs.push(input);
+      }
+
+      if (!input.users.find((u) => u.id === user.id)) {
+        input.users.push(user);
+      }
+
+      return { activityNodes: [...state.activityNodes] };
+    });
   },
 
-  diactivateNodeInput: (nodeId, inputName) => {
-    const userId = get().currentUser?.id;
-    if (!userId) return;
+  removeNodeInputActiveUser: (nodeId, inputName, userId) => {
+    set((state) => {
+      const node = state.activityNodes.find((n) => n.id === nodeId);
 
-    set((state) => ({
-      activityNodes: state.activityNodes.map((n) =>
-        n.id === nodeId
-          ? {
-              ...n,
-              activityInputs: n.activityInputs
-                .map((i) =>
-                  i.inputName === inputName
-                    ? { ...i, users: i.users.filter((u) => u.id !== userId) }
-                    : i
-                )
-                .filter((i) => i.users.length > 0)
-            }
-          : n
-      )
-    }));
+      if (!node) return {};
+      const input = node.inputs.find((i) => i.inputName === inputName);
+
+      if (!input) return {};
+      input.users = input.users.filter((u) => u.id !== userId);
+
+      if (input.users.length === 0) {
+        node.inputs = node.inputs.filter((i) => i.inputName !== inputName);
+      }
+
+      if (node.users.length === 0 && node.inputs.length === 0) {
+        return { activityNodes: state.activityNodes.filter((n) => n.id !== nodeId) };
+      }
+
+      return { activityNodes: [...state.activityNodes] };
+    });
   }
 }));

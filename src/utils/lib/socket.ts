@@ -12,8 +12,12 @@ export interface SocketMessage {
   payload: any;
   type:
     | 'CURSOR_MOVED'
+    | 'NODE_ACTIVATED'
     | 'NODE_ADDED'
     | 'NODE_DATA_UPDATED'
+    | 'NODE_DEACTIVATED'
+    | 'NODE_INPUT_ACTIVATED'
+    | 'NODE_INPUT_DEACTIVATED'
     | 'NODE_MOVED'
     | 'NODE_REMOVED'
     | 'ROOM_JOINED'
@@ -91,6 +95,34 @@ socket.onmessage = (event) => {
         ]);
       }
 
+      return;
+    }
+
+    if (data.type === 'NODE_ACTIVATED') {
+      useRoomStore.getState().addNodeActiveUser(data.payload.nodeId, data.payload.user);
+      return;
+    }
+
+    if (data.type === 'NODE_DEACTIVATED') {
+      useRoomStore.getState().removeNodeActiveUser(data.payload.nodeId, data.payload.userId);
+      return;
+    }
+
+    if (data.type === 'NODE_INPUT_ACTIVATED') {
+      useRoomStore
+        .getState()
+        .addNodeInputActiveUser(data.payload.nodeId, data.payload.inputName, data.payload.user);
+      return;
+    }
+
+    if (data.type === 'NODE_INPUT_DEACTIVATED') {
+      useRoomStore
+        .getState()
+        .removeNodeInputActiveUser(
+          data.payload.nodeId,
+          data.payload.inputName,
+          data.payload.userId
+        );
       return;
     }
 
@@ -174,6 +206,22 @@ export const socketActions = {
         }
       })
     );
+  },
+
+  activateNode: (nodeId: string) => {
+    socket.send(JSON.stringify({ type: 'ACTIVATE_NODE', payload: { nodeId } }));
+  },
+
+  diactivateNode: (nodeId: string) => {
+    socket.send(JSON.stringify({ type: 'DEACTIVATE_NODE', payload: { nodeId } }));
+  },
+
+  activateNodeInput: (nodeId: string, inputName: string) => {
+    socket.send(JSON.stringify({ type: 'NODE_INPUT_ACTIVATED', payload: { nodeId, inputName } }));
+  },
+
+  diactivateNodeInput: (nodeId: string, inputName: string) => {
+    socket.send(JSON.stringify({ type: 'NODE_INPUT_DEACTIVATED', payload: { nodeId, inputName } }));
   },
 
   joinRoom: (roomId: string) =>

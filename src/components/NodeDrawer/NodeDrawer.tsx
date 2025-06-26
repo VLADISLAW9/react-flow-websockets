@@ -1,7 +1,9 @@
 import type { ChangeEvent, FocusEvent } from 'react';
-import { Drawer, Select, Stack, Switch, Text, Textarea, Box } from '@mantine/core';
+
+import { Box, Drawer, Select, Stack, Switch, Text, Textarea } from '@mantine/core';
 
 import type { AppNode } from '@/utils/types';
+
 import { socketActions } from '@/utils/lib';
 import { useReactFlowStore, useRoomStore } from '@/utils/stores';
 
@@ -31,15 +33,17 @@ export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
   const activity = roomStore.activityNodes.find(({ id }) => id === node.id);
   const currentUserId = roomStore.currentUser?.id;
 
+  const getInputUsers = (inputId: string) =>
+    activity?.inputs.find((input) => input.inputName === inputId)?.users || [];
+
   const renderInputHighlight = (inputId: string) => {
     const users = getInputUsers(inputId);
-
     if (!users.length) return null;
 
     return (
       <Stack gap={2}>
         {users.map((user) => (
-          <Text key={user.id} size='xs' c={user.color} fw={600}>
+          <Text key={user.id} c={user.color} fw={600} size='xs'>
             {user.name} {user.id === currentUserId && '(Вы)'}
           </Text>
         ))}
@@ -49,28 +53,26 @@ export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
 
   const inputActive = (inputId: string) => getInputUsers(inputId).length > 0;
 
-  const getInputUsers = (inputId: string) =>
-    activity?.activityInputs.find((input) => input.inputName === inputId)?.users || [];
-
   const getInputStyle = (inputId: string) =>
     inputActive(inputId) ? { borderColor: getInputUsers(inputId)[0].color } : {};
 
   const onNodeLabelChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    reactFlowStore.setNodeData(node.id, { label: event.target.value });
-    socketActions.updateNodeData(node.id, { ...node.data, label: event.target.value });
+    const value = event.target.value;
+    reactFlowStore.setNodeData(node.id, { label: value });
+    socketActions.updateNodeData(node.id, { ...node.data, label: value });
   };
 
   const onNodeDrawerClose = () => {
-    roomStore.diactivateNode(node.id);
+    socketActions.diactivateNode(node.id);
     close();
   };
 
   const onNodeInputFocus = (event: FocusEvent<Element>) => {
-    roomStore.activateNodeInput(node.id, event.target.id);
+    socketActions.activateNodeInput(node.id, event.target.id);
   };
 
   const onNodeInputBlur = (event: FocusEvent<Element>) => {
-    roomStore.diactivateNodeInput(node.id, event.target.id);
+    socketActions.diactivateNodeInput(node.id, event.target.id);
   };
 
   return (
@@ -80,13 +82,13 @@ export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
           <Textarea
             id={INPUT_IDS.LABEL}
             label='Имя'
+            styles={{ input: getInputStyle(INPUT_IDS.LABEL) }}
             value={node.data.label}
             autosize
             onBlur={onNodeInputBlur}
             onChange={onNodeLabelChange}
             onFocus={onNodeInputFocus}
             placeholder='Имя'
-            styles={{ input: getInputStyle(INPUT_IDS.LABEL) }}
           />
           {renderInputHighlight(INPUT_IDS.LABEL)}
         </Box>
@@ -95,22 +97,24 @@ export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
           <Textarea
             id={INPUT_IDS.DESCRIPTION}
             label='Описание'
+            styles={{ input: getInputStyle(INPUT_IDS.DESCRIPTION) }}
             autosize
+            onBlur={onNodeInputBlur}
             onFocus={onNodeInputFocus}
             placeholder='Описание'
-            styles={{ input: getInputStyle(INPUT_IDS.DESCRIPTION) }}
           />
           {renderInputHighlight(INPUT_IDS.DESCRIPTION)}
         </Box>
 
         <Box>
           <Select
-            id={INPUT_IDS.TYPE}
             data={TYPE_SELECT_DATA}
+            id={INPUT_IDS.TYPE}
             label='Тип'
+            styles={{ input: getInputStyle(INPUT_IDS.TYPE) }}
+            onBlur={onNodeInputBlur}
             onFocus={onNodeInputFocus}
             placeholder='Тип'
-            styles={{ input: getInputStyle(INPUT_IDS.TYPE) }}
           />
           {renderInputHighlight(INPUT_IDS.TYPE)}
         </Box>
@@ -119,8 +123,9 @@ export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
           <Switch
             id={INPUT_IDS.ENABLED}
             label='Активирован'
-            onFocus={onNodeInputFocus}
             styles={{ track: getInputStyle(INPUT_IDS.ENABLED) }}
+            onBlur={onNodeInputBlur}
+            onFocus={onNodeInputFocus}
           />
           {renderInputHighlight(INPUT_IDS.ENABLED)}
         </Box>

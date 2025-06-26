@@ -190,12 +190,75 @@ wss.on('connection', (ws) => {
     );
   };
 
+  const handleActivateNode = (ws, nodeId) => {
+    const room = rooms.get(currentRoom);
+
+    if (!room) return;
+
+    const user = room.clients.get(ws);
+
+    if (!user) return;
+
+    broadcastToRoom(
+      currentRoom,
+      {
+        type: 'NODE_ACTIVATED',
+        payload: { nodeId, user }
+      },
+      ws
+    );
+  };
+
+  const handleDeactivateNode = (ws, nodeId) => {
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+    const user = room.clients.get(ws);
+    if (!user) return;
+
+    broadcastToRoom(currentRoom, {
+      type: 'NODE_DEACTIVATED',
+      payload: { nodeId, userId: user.id }
+    });
+  };
+
+  const handleActivateNodeInput = (ws, nodeId, inputName) => {
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+    const user = room.clients.get(ws);
+    if (!user) return;
+
+    broadcastToRoom(
+      currentRoom,
+      {
+        type: 'NODE_INPUT_ACTIVATED',
+        payload: { nodeId, inputName, user }
+      },
+      ws
+    );
+  };
+
+  const handleDeactivateNodeInput = (ws, nodeId, inputName) => {
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+    const user = room.clients.get(ws);
+    if (!user) return;
+
+    broadcastToRoom(currentRoom, {
+      type: 'NODE_INPUT_DEACTIVATED',
+      payload: { nodeId, inputName, userId: user.id }
+    });
+  };
+
   const handleJoinRoom = (ws, roomId) => {
     if (!roomId) roomId = uuidv4();
+    currentRoom = roomId;
 
-    if (rooms.has(roomId)) {
-      const room = rooms.get(roomId);
-      Array.from(room.clients.entries()).forEach(([client, user]) => {
+    const existingRoom = rooms.get(roomId);
+
+    if (existingRoom) {
+      existingRoom.clients.set(ws, currentUser);
+
+      for (const [client, user] of existingRoom.clients.entries()) {
         if (client !== ws && user.cursorPosition) {
           ws.send(
             JSON.stringify({
@@ -209,16 +272,7 @@ wss.on('connection', (ws) => {
             })
           );
         }
-      });
-    }
-
-    if (!rooms.has(roomId)) {
-      rooms.set(roomId, {
-        clients: new Map([[ws, currentUser]]),
-        flowState: JSON.parse(JSON.stringify(initialFlowState))
-      });
-
-      console.log(`Создана новая комната: ${roomId}, пользователь: ${currentUser.name}`);
+      }
 
       ws.send(
         JSON.stringify({
@@ -226,53 +280,53 @@ wss.on('connection', (ws) => {
           payload: {
             roomId,
             currentUser,
-            flowState: rooms.get(roomId).flowState,
+            flowState: existingRoom.flowState,
+            users: Array.from(existingRoom.clients.values())
+          }
+        })
+      );
+
+      broadcastToRoom(
+        roomId,
+        {
+          type: 'USER_JOINED',
+          payload: { user: currentUser }
+        },
+        ws
+      );
+    } else {
+      rooms.set(roomId, {
+        clients: new Map([[ws, currentUser]]),
+        flowState: JSON.parse(JSON.stringify(initialFlowState))
+      });
+
+      ws.send(
+        JSON.stringify({
+          type: 'ROOM_JOINED',
+          payload: {
+            roomId,
+            currentUser,
+            flowState: initialFlowState,
             users: [currentUser]
           }
         })
       );
 
-      return;
+      console.log(`Создана новая комната: ${roomId}, пользователь: ${currentUser.name}`);
     }
-
-    const room = rooms.get(roomId);
-    room.clients.set(ws, currentUser);
-    currentRoom = roomId;
-
-    console.log(`Пользователь ${currentUser.name} присоединился к комнате: ${roomId}`);
-
-    ws.send(
-      JSON.stringify({
-        type: 'ROOM_JOINED',
-        payload: {
-          roomId,
-          currentUser,
-          flowState: room.flowState,
-          users: Array.from(room.clients.values())
-        }
-      })
-    );
-
-    broadcastToRoom(
-      roomId,
-      {
-        type: 'USER_JOINED',
-        payload: { user: currentUser }
-      },
-      ws
-    );
   };
 
   ws.on('message', (message) => {
-    if (typeof message !== 'string' && !Buffer.isBuffer(message)) {
-      console.warn('Получены неподдерживаемые данные:', message);
-      return;
-    }
-
+    if (typeof message !== 'string' && !Buffer.isBuffer(message)) return;
     const text = message.toString();
 
     try {
       const data = JSON.parse(text);
+
+      if (!currentRoom && data.type !== 'JOIN_ROOM') {
+        console.warn('Сообщение до входа в комнату:', data.type);
+        return;
+      }
 
       switch (data.type) {
         case 'JOIN_ROOM':
@@ -290,10 +344,21 @@ wss.on('connection', (ws) => {
         case 'MOVE_NODE':
           handleMoveNode(ws, data.payload.nodeId, data.payload.position);
           break;
+        case 'ACTIVATE_NODE':
+          handleActivateNode(ws, data.payload.nodeId);
+          break;
+        case 'DEACTIVATE_NODE':
+          handleDeactivateNode(ws, data.payload.nodeId);
+          break;
+        case 'NODE_INPUT_ACTIVATED':
+          handleActivateNodeInput(ws, data.payload.nodeId, data.payload.inputName);
+          break;
+        case 'NODE_INPUT_DEACTIVATED':
+          handleDeactivateNodeInput(ws, data.payload.nodeId, data.payload.inputName);
+          break;
         case 'MOVE_CURSOR':
           handleCursorMove(ws, data.payload.position);
           break;
-
         default:
           console.warn('Неизвестный тип сообщения:', data.type);
       }

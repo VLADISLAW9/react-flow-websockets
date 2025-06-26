@@ -1,30 +1,31 @@
 import type { NodeProps } from '@xyflow/react';
 
-import { Button, Group, Paper, Stack, Text, Tooltip } from '@mantine/core';
+import { Badge, Button, Group, Paper, Stack, Text, Tooltip } from '@mantine/core';
 import { Handle, Position } from '@xyflow/react';
 
 import type { AppNode } from '@/utils/types/AppNode';
 
+import { socketActions } from '@/utils/lib';
 import { useNodeDrawerStore, useRoomStore } from '@/utils/stores';
 
-export const Node = ({ id, data, isConnectable }: NodeProps<AppNode>) => {
+export const Node = ({ id, data, isConnectable, selected }: NodeProps<AppNode>) => {
   const nodeDrawerStore = useNodeDrawerStore();
   const roomStore = useRoomStore();
 
   const nodeActivity = roomStore.activityNodes.find((node) => node.id === id);
-  const isActive = !!nodeActivity?.users?.length;
+  const isActive = !!nodeActivity?.users.length;
 
   const onNodeDrawerOpen = () => {
     nodeDrawerStore.open(id);
-    roomStore.activateNode(id);
+    socketActions.activateNode(id);
   };
 
   const renderTooltipContent = () => (
     <Stack gap={2}>
       {nodeActivity?.users.map((user) => (
-        <Text key={user.id} size='xs' c={user.color} fw={600}>
+        <Badge key={user.id} fw={600} radius='sm' size='xs' variant='light' color={user.color}>
           {user.name} {user.id === roomStore.currentUser?.id && '(Вы)'}
-        </Text>
+        </Badge>
       ))}
     </Stack>
   );
@@ -32,40 +33,43 @@ export const Node = ({ id, data, isConnectable }: NodeProps<AppNode>) => {
   return (
     <>
       <Handle
+        style={{ zIndex: 10 }}
         type='target'
         isConnectable={isConnectable}
         position={Position.Left}
-        className='z-10'
       />
       <Tooltip
+        label={renderTooltipContent()}
+        p={0}
         arrowOffset={10}
         arrowSize={4}
-        withArrow
+        color='white'
         opened={isActive}
-        position='left-start'
-        label={renderTooltipContent()}
+        position='top-start'
+        withArrow
         withinPortal
       >
         <Paper
-          withBorder
-          shadow='md'
-          radius='md'
-          w={120}
-          h={140}
-          p='xs'
           styles={(theme) => ({
             root: {
-              backgroundColor: isActive ? theme.colors.yellow[2] : theme.colors.yellow[1],
+              backgroundColor: theme.colors.yellow[1],
               transition: 'all 150ms ease',
               cursor: 'pointer',
-              border: isActive
-                ? `2px solid ${theme.colors.yellow[5]}`
-                : `2px solid ${theme.colors.yellow[1]}`
+              border:
+                isActive || selected
+                  ? `2px solid ${nodeActivity?.users[nodeActivity?.users.length - 1].color}`
+                  : `2px solid ${theme.colors.yellow[1]}`
             }
           })}
+          h={140}
+          p='xs'
+          radius='md'
+          w={120}
+          shadow='md'
+          withBorder
         >
           <Group justify='space-between'>
-            <Text size='sm' fw={500}>
+            <Text fw={500} size='sm'>
               {data.label}
             </Text>
             <Button size='compact-xs' variant='outline' color='dark' onClick={onNodeDrawerOpen}>
@@ -75,10 +79,10 @@ export const Node = ({ id, data, isConnectable }: NodeProps<AppNode>) => {
         </Paper>
       </Tooltip>
       <Handle
+        style={{ zIndex: 10 }}
         type='source'
         isConnectable={isConnectable}
         position={Position.Right}
-        className='z-10'
       />
     </>
   );
