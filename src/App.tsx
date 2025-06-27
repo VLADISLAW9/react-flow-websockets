@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { Flex } from '@mantine/core';
 
 import { NodeDrawer, ReactFlowComponent, ToolsBar } from './components';
-import { socket, socketActions } from './utils/lib';
+import { CollabarativeProvider } from './components/CollabarativeProvider/CollabarativeProvider';
 import { useNodeDrawerStore, useReactFlowStore } from './utils/stores';
 
 export const App = () => {
@@ -10,24 +10,13 @@ export const App = () => {
 
   const nodeDrawerData = reactFlowStore.getNodeById(nodeDrawerStore.nodeId);
 
-  useEffect(() => {
-    socket.onopen = () => {
-      console.log('[WebSocket] opened');
-      socketActions.joinRoom('1');
-    };
-
-    socket.onerror = (error) => console.error('[WebSocket] error', error);
-
-    return () => {
-      socket.onclose = () => console.warn('[WebSocket] closed');
-    };
-  }, []);
-
   return (
-    <div className='flex h-screen'>
+    <Flex>
       <ToolsBar />
-      <ReactFlowComponent />
-      {nodeDrawerData && <NodeDrawer close={nodeDrawerStore.close} node={nodeDrawerData} />}
-    </div>
+      <CollabarativeProvider>
+        <ReactFlowComponent />
+        {nodeDrawerData && <NodeDrawer close={nodeDrawerStore.close} node={nodeDrawerData} />}
+      </CollabarativeProvider>
+    </Flex>
   );
 };

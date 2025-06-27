@@ -8,7 +8,7 @@ import type { AppNode } from '@/utils/types/AppNode';
 import { socketActions } from '@/utils/lib';
 import { useNodeDrawerStore, useRoomStore } from '@/utils/stores';
 
-export const Node = ({ id, data, isConnectable, selected }: NodeProps<AppNode>) => {
+export const Node = ({ id, data, isConnectable }: NodeProps<AppNode>) => {
   const nodeDrawerStore = useNodeDrawerStore();
   const roomStore = useRoomStore();
 
@@ -39,11 +39,13 @@ export const Node = ({ id, data, isConnectable, selected }: NodeProps<AppNode>) 
         position={Position.Left}
       />
       <Tooltip
+        id={id}
         label={renderTooltipContent()}
         p={0}
         arrowOffset={10}
         arrowSize={4}
         color='white'
+        data-isNode
         opened={isActive}
         position='top-start'
         withArrow
@@ -55,10 +57,9 @@ export const Node = ({ id, data, isConnectable, selected }: NodeProps<AppNode>) 
               backgroundColor: theme.colors.yellow[1],
               transition: 'all 150ms ease',
               cursor: 'pointer',
-              border:
-                isActive || selected
-                  ? `2px solid ${nodeActivity?.users[nodeActivity?.users.length - 1].color}`
-                  : `2px solid ${theme.colors.yellow[1]}`
+              border: isActive
+                ? `2px solid ${nodeActivity?.users[nodeActivity?.users.length - 1].color}`
+                : `2px solid ${theme.colors.yellow[1]}`
             }
           })}
           h={140}
