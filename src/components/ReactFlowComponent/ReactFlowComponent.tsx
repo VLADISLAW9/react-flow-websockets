@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/shallow';
 
 import type { AppNode } from '@/utils/types/AppNode';
 
+import { useCollaborative } from '@/utils/contexts/collaborative';
 import { socketActions } from '@/utils/lib/socket';
 import { useReactFlowStore, useRoomStore } from '@/utils/stores';
 
@@ -19,6 +20,8 @@ const NODE_TYPES = {
 };
 
 export const ReactFlowComponent = () => {
+  const collaborative = useCollaborative();
+
   const { ref, x, y } = useMouse<HTMLDivElement>();
   const { screenToFlowPosition } = useReactFlow();
 
@@ -48,6 +51,7 @@ export const ReactFlowComponent = () => {
   return (
     <ReactFlow
       ref={ref}
+      {...collaborative}
       edges={edges}
       nodes={nodes}
       nodeTypes={NODE_TYPES}

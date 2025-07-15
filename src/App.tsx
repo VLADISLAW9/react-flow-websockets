@@ -1,7 +1,7 @@
 import { Flex } from '@mantine/core';
 
 import { NodeDrawer, ReactFlowComponent, ToolsBar } from './components';
-import { CollabarativeProvider } from './components/CollabarativeProvider/CollabarativeProvider';
+import { CollaborativeProvider } from './utils/contexts/collaborative';
 import { useNodeDrawerStore, useReactFlowStore } from './utils/stores';
 
 export const App = () => {
@@ -13,10 +13,12 @@ export const App = () => {
   return (
     <Flex>
       <ToolsBar />
-      <CollabarativeProvider>
-        <ReactFlowComponent />
-        {nodeDrawerData && <NodeDrawer close={nodeDrawerStore.close} node={nodeDrawerData} />}
-      </CollabarativeProvider>
+      <CollaborativeProvider>
+        <Flex h='100vh' w='100vw'>
+          <ReactFlowComponent />
+          {nodeDrawerData && <NodeDrawer close={nodeDrawerStore.close} node={nodeDrawerData} />}
+        </Flex>
+      </CollaborativeProvider>
     </Flex>
   );
 };
