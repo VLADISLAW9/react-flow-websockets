@@ -1,6 +1,5 @@
 import { createTheme, MantineProvider } from '@mantine/core';
 import { ReactFlowProvider } from '@xyflow/react';
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './App.tsx';
@@ -16,13 +15,11 @@ const init = () => {
   });
 
   root.render(
-    <StrictMode>
-      <MantineProvider theme={theme}>
-        <ReactFlowProvider>
-          <App />
-        </ReactFlowProvider>
-      </MantineProvider>
-    </StrictMode>
+    <MantineProvider theme={theme}>
+      <ReactFlowProvider>
+        <App />
+      </ReactFlowProvider>
+    </MantineProvider>
   );
 };
 

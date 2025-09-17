@@ -1,20 +1,13 @@
-import type {OnNodeDrag} from '@xyflow/react';
+import type { OnNodeDrag } from '@xyflow/react';
 
 import { useDidUpdate, useMouse } from '@siberiacancode/reactuse';
-import {
-  Background,
-  Controls,
-  MiniMap,
-  
-  ReactFlow,
-  useReactFlow
-} from '@xyflow/react';
+import { Background, Controls, MiniMap, ReactFlow, useReactFlow } from '@xyflow/react';
 import { useShallow } from 'zustand/shallow';
 
 import type { AppNode } from '@/utils/types/AppNode';
 
 import { socketActions } from '@/utils/lib/socket';
-import { useReactFlowStore, useRoomStore } from '@/utils/stores';
+import { useCursorsStore, useReactFlowStore, useUsersStore } from '@/utils/stores';
 
 import { MdiCursorDefault } from '../icons/MdiCursorDefault';
 import { Node } from './components';
@@ -29,21 +22,8 @@ export const ReactFlowComponent = () => {
   const { ref, x, y } = useMouse<HTMLDivElement>();
   const { screenToFlowPosition } = useReactFlow();
 
-  const { edges, nodes, onConnect, onEdgesChange, onNodesChange } = useReactFlowStore(
-    useShallow((state) => ({
-      edges: state.edges,
-      nodes: state.nodes,
-      onConnect: state.onConnect,
-      onEdgesChange: state.onEdgesChange,
-      onNodesChange: state.onNodesChange
-    }))
-  );
-
-  const { cursors } = useRoomStore(
-    useShallow((state) => ({
-      cursors: state.cursors
-    }))
-  );
+  const { cursors } = useCursorsStore();
+  const { edges, nodes, onConnect, onEdgesChange, onNodesChange } = useReactFlowStore();
 
   const onNodeDrag: OnNodeDrag<AppNode> = (_, node) =>
     socketActions.moveNode(node.id, node.position);
