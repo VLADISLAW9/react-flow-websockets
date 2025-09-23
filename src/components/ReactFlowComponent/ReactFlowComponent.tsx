@@ -1,44 +1,46 @@
 import type { OnNodeDrag } from '@xyflow/react';
 
-import { useDidUpdate, useMouse } from '@siberiacancode/reactuse';
 import { Background, Controls, MiniMap, ReactFlow, useReactFlow } from '@xyflow/react';
-import { useShallow } from 'zustand/shallow';
 
 import type { AppNode } from '@/utils/types/AppNode';
 
-import { socketActions } from '@/utils/lib/socket';
-import { useCursorsStore, useReactFlowStore, useUsersStore } from '@/utils/stores';
+import { useCursorsStore, useReactFlowStore } from '@/utils/stores';
 
 import { MdiCursorDefault } from '../icons/MdiCursorDefault';
 import { Node } from './components';
 
 import '@xyflow/react/dist/style.css';
+import { reactFlow } from '@/utils/lib/reactFlow/instance';
+import type { MouseEvent } from 'react';
 
 const NODE_TYPES = {
   node: Node
 };
 
 export const ReactFlowComponent = () => {
-  const { ref, x, y } = useMouse<HTMLDivElement>();
   const { screenToFlowPosition } = useReactFlow();
 
   const { cursors } = useCursorsStore();
   const { edges, nodes, onConnect, onEdgesChange, onNodesChange } = useReactFlowStore();
 
-  const onNodeDrag: OnNodeDrag<AppNode> = (_, node) =>
-    socketActions.moveNode(node.id, node.position);
+  const onNodeDrag: OnNodeDrag<AppNode> = (_, node) => reactFlow.moveNode(node);
 
-  useDidUpdate(() => {
-    socketActions.moveCursor(screenToFlowPosition({ x, y }));
-  }, [x, y]);
+  const onMouseMove = (event: MouseEvent) => {
+    reactFlow.moveCursor(
+      screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY
+      })
+    );
+  };
 
   return (
     <ReactFlow
-      ref={ref}
       edges={edges}
       nodes={nodes}
       nodeTypes={NODE_TYPES}
       onConnect={onConnect}
+      onMouseMove={onMouseMove}
       onEdgesChange={onEdgesChange}
       onNodeDrag={onNodeDrag}
       onNodesChange={onNodesChange}

@@ -17,10 +17,10 @@ export class Y {
   }
 
   setNodes(value: AppNode[]) {
-    return this.Doc.getMap().get(EDGES_KEY);
+    this.Doc.getMap().set(NODES_KEY, value);
   }
 
-  setEdges(value) {
-    return;
+  setEdges(value: Edge[]) {
+    this.Doc.getMap().set(EDGES_KEY, value);
   }
 }
