@@ -15,9 +15,9 @@ export const socketActions = {
   moveCursor: (position: { x: number; y: number }) =>
     socket.send({ type: 'MOVE_CURSOR', payload: { position } }),
 
-  updateNodeData: (nodeId: string, newData: any) =>
+  updateNodeData: (nodeId: string, update: Uint8Array) =>
     socket.send({
       type: 'UPDATE_NODE_DATA',
-      payload: { nodeId, newData }
+      payload: { nodeId, update }
     })
 };

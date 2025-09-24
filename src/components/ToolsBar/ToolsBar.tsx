@@ -1,10 +1,10 @@
 import { useDragAndDrop } from '@formkit/drag-and-drop/react';
 import { useReactFlow } from '@xyflow/react';
 
-import { socketActions } from '@/utils/lib/socket';
-import { useReactFlowStore, useUsersStore } from '@/utils/stores';
+import { useUsersStore } from '@/utils/stores';
 
 import { MaterialSymbolsAccountCircle, MaterialSymbolsStopOutline } from '../icons';
+import { reactFlow } from '@/utils/lib/reactFlow/instance';
 
 const TOOLS_BAR_ITEMS = [
   {
@@ -20,8 +20,6 @@ export const ToolsBar = () => {
   const [ref] = useDragAndDrop<HTMLUListElement>(TOOLS_BAR_ITEMS, {
     nativeDrag: false,
     onDragend: (data: any) => {
-      const { nodes, setNodes } = useReactFlowStore.getState();
-
       const newNode = {
         data: { label: 'Block' },
         type: 'node',
@@ -29,8 +27,7 @@ export const ToolsBar = () => {
         position: screenToFlowPosition(data.state.coordinates)
       };
 
-      setNodes([...nodes, newNode]);
-      socketActions.addNode(newNode);
+      reactFlow.addNode(newNode);
     }
   });
 
