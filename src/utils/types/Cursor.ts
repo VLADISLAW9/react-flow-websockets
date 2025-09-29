@@ -1,4 +1,4 @@
-export interface UserCursor {
+export interface Cursor {
   color: string;
   name: string;
   position: { x: number; y: number };

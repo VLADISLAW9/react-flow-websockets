@@ -1,11 +1,11 @@
-import { useReactFlowStore } from '@/utils/stores';
-import { reactFlow } from '../../reactFlow/instance';
+import { canvas } from '../../canvas/instance';
 
 export const handleNodeRemoved = (data: any) => {
-  const { edges, nodes } = useReactFlowStore.getState();
+  const nodes = canvas.getNodes();
+  const edges = canvas.getEdges();
 
-  reactFlow.setNodes(nodes.filter((n) => n.id !== data.payload.nodeId));
-  reactFlow.setEdges(
+  canvas.setNodes(nodes.filter((n) => n.id !== data.payload.nodeId));
+  canvas.setEdges(
     edges.filter(
       (edge) => edge.source !== data.payload.nodeId && edge.target !== data.payload.nodeId
     )

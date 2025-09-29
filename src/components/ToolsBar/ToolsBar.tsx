@@ -1,10 +1,10 @@
 import { useDragAndDrop } from '@formkit/drag-and-drop/react';
 import { useReactFlow } from '@xyflow/react';
 
-import { useUsersStore } from '@/utils/stores';
+import { canvas } from '@/utils/lib/canvas/instance';
+import { members } from '@/utils/lib/members/instance';
 
 import { MaterialSymbolsAccountCircle, MaterialSymbolsStopOutline } from '../icons';
-import { reactFlow } from '@/utils/lib/reactFlow/instance';
 
 const TOOLS_BAR_ITEMS = [
   {
@@ -15,7 +15,8 @@ const TOOLS_BAR_ITEMS = [
 
 export const ToolsBar = () => {
   const { screenToFlowPosition } = useReactFlow();
-  const { users } = useUsersStore();
+
+  const users = members.getMembers();
 
   const [ref] = useDragAndDrop<HTMLUListElement>(TOOLS_BAR_ITEMS, {
     nativeDrag: false,
@@ -27,7 +28,7 @@ export const ToolsBar = () => {
         position: screenToFlowPosition(data.state.coordinates)
       };
 
-      reactFlow.addNode(newNode);
+      canvas.addNode(newNode);
     }
   });
 

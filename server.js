@@ -198,19 +198,12 @@ wss.on('connection', (ws) => {
     });
   };
 
-  const handleUpdateNodeData = (ws, nodeId, newData) => {
+  const handleUpdateNodeData = (ws, nodeId, update) => {
     if (!currentRoom || !rooms.has(currentRoom)) return;
-
-    const room = rooms.get(currentRoom);
-    const node = room.flowState.nodes.find((n) => n.id === nodeId);
-
-    if (!node) return;
-
-    node.data = { ...node.data, ...newData };
 
     broadcastToRoom(currentRoom, {
       type: 'NODE_DATA_UPDATED',
-      payload: { nodeId, newData }
+      payload: { nodeId, update }
     });
   };
 

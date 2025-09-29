@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 
-import type { User } from '../types';
+import type { Member } from '../types';
 
 interface UseProfileStore {
-  profile: User | null;
-  setProfile: (profile: User) => void;
+  profile: Member | null;
+  setProfile: (profile: Member) => void;
 }
 
 export const useProfileStore = create<UseProfileStore>((set) => ({

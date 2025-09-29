@@ -1,5 +1,5 @@
-import { reactFlow } from '../../reactFlow/instance';
+import { canvas } from '../../canvas/instance';
 
 export const handleNodeDataUpdated = (data: any) => {
-  reactFlow.applyUpdate(data.update);
+  canvas.applyUpdate(data.update);
 };

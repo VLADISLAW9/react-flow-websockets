@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 
-import type { UserCursor } from '../types';
+import type { Cursor } from '../types';
 
 interface UseCursorsStore {
-  cursors: UserCursor[];
-  setCursors: (cursors: UserCursor[]) => void;
+  cursors: Cursor[];
+  setCursors: (cursors: Cursor[]) => void;
 }
 
 export const useCursorsStore = create<UseCursorsStore>((set) => ({

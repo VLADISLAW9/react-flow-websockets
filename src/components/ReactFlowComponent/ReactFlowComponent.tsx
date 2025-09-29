@@ -1,17 +1,18 @@
 import type { OnNodeDrag } from '@xyflow/react';
+import type { MouseEvent } from 'react';
 
 import { Background, Controls, MiniMap, ReactFlow, useReactFlow } from '@xyflow/react';
 
 import type { AppNode } from '@/utils/types/AppNode';
 
-import { useCursorsStore, useReactFlowStore } from '@/utils/stores';
+import { canvas } from '@/utils/lib/canvas/instance';
+import { members } from '@/utils/lib/members/instance';
+import { useReactFlowStore } from '@/utils/stores';
 
 import { MdiCursorDefault } from '../icons/MdiCursorDefault';
 import { Node } from './components';
 
 import '@xyflow/react/dist/style.css';
-import { reactFlow } from '@/utils/lib/reactFlow/instance';
-import type { MouseEvent } from 'react';
 
 const NODE_TYPES = {
   node: Node
@@ -19,14 +20,14 @@ const NODE_TYPES = {
 
 export const ReactFlowComponent = () => {
   const { screenToFlowPosition } = useReactFlow();
-
-  const { cursors } = useCursorsStore();
   const { edges, nodes, onConnect, onEdgesChange, onNodesChange } = useReactFlowStore();
 
-  const onNodeDrag: OnNodeDrag<AppNode> = (_, node) => reactFlow.moveNode(node);
+  const cursors = members.getCursors();
+
+  const onNodeDrag: OnNodeDrag<AppNode> = (_, node) => canvas.moveNode(node);
 
   const onMouseMove = (event: MouseEvent) => {
-    reactFlow.moveCursor(
+    canvas.moveCursor(
       screenToFlowPosition({
         x: event.clientX,
         y: event.clientY
@@ -40,8 +41,8 @@ export const ReactFlowComponent = () => {
       nodes={nodes}
       nodeTypes={NODE_TYPES}
       onConnect={onConnect}
-      onMouseMove={onMouseMove}
       onEdgesChange={onEdgesChange}
+      onMouseMove={onMouseMove}
       onNodeDrag={onNodeDrag}
       onNodesChange={onNodesChange}
     >

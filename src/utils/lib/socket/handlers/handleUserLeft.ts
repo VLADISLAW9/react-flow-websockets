@@ -1,9 +1,9 @@
-import { useCursorsStore, useUsersStore } from '@/utils/stores';
+import { members } from '../../members/instance';
 
 export const handleUserLeft = (data: any) => {
-  const { setUsers, users } = useUsersStore.getState();
-  const { cursors, setCursors } = useCursorsStore.getState();
+  const users = members.getMembers();
+  const cursors = members.getCursors();
 
-  setUsers(users.filter((user) => user.id !== data.payload.userId));
-  setCursors(cursors.filter((cursor) => cursor.userId !== data.payload.userId));
+  members.setMembers(users.filter((user) => user.id !== data.payload.userId));
+  members.setCursors(cursors.filter((cursor) => cursor.userId !== data.payload.userId));
 };

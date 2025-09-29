@@ -1,7 +1,6 @@
-import { useCursorsStore } from '@/utils/stores';
+import { members } from '../../members/instance';
 
 export const handleCursorMoved = (data: any) => {
-  const { cursors, setCursors } = useCursorsStore.getState();
-
-  setCursors(cursors.map((cursor) => (cursor.userId === data.userId ? data : cursor)));
+  const cursors = members.getCursors();
+  members.setCursors(cursors.map((cursor) => (cursor.userId === data.userId ? data : cursor)));
 };
