@@ -1,7 +1,8 @@
-import { Drawer, Input } from '@mantine/core';
+import { Button, Drawer, Flex, Input, Stack, Textarea } from '@mantine/core';
 
 import type { AppNode } from '@/utils/types';
 
+import { useState } from 'react';
 import { canvas } from '@/utils/lib/canvas/instance';
 
 interface NodeDrawerProps {
@@ -9,18 +10,34 @@ interface NodeDrawerProps {
   close: () => void;
 }
 
-export const NodeDrawer = ({ node, close }: NodeDrawerProps) => (
-  <Drawer withOverlay={false} onClose={close} opened={!!node} position='right'>
-    <Input
-      value={node.data.label}
-      onChange={(event) => {
-        const updatedNode: AppNode = {
-          ...node,
-          data: { ...node.data, label: event.target.value }
-        };
+export const NodeDrawer = ({ node, close }: NodeDrawerProps) => {
+  const [label, setLabel] = useState(node.data.label);
+  const [description, setDescription] = useState(node.data.description);
 
-        canvas.setNode(updatedNode);
-      }}
-    />
-  </Drawer>
-);
+  const onSaveChanges = () => {
+    const updatedNode: AppNode = { ...node, data: { label, description } };
+    canvas.setNode(updatedNode);
+  };
+
+  const onCancelChanges = () => {
+    setLabel(node.data.label);
+    setDescription(node.data.description);
+  };
+
+  return (
+    <Drawer withOverlay={false} onClose={close} opened={!!node} position='right'>
+      <Stack>
+        <Input value={label} onChange={(event) => setLabel(event.target.value)} />
+        <Textarea value={description} onChange={(event) => setDescription(event.target.value)} />
+        <Flex gap='sm'>
+          <Button color='red' onClick={onCancelChanges}>
+            Отменить
+          </Button>
+          <Button color='green' onClick={onSaveChanges}>
+            Сохранить
+          </Button>
+        </Flex>
+      </Stack>
+    </Drawer>
+  );
+};

@@ -1,54 +1,40 @@
-import type { Edge } from '@xyflow/react';
-
-import * as Y from 'yjs';
+import * as _Y from 'yjs';
 
 import type { AppNode } from '@/utils/types';
 
-export class Yjs {
-  private _nodesDoc = new Y.Doc();
-  private _edgedDoc = new Y.Doc();
+export class Y {
+  private _nodesDoc = new _Y.Doc();
+  private _nodesMap = this._nodesDoc.getMap<AppNode>();
 
-  public nodesDoc() {
-    return this._nodesDoc;
+  public getNodes() {
+    return Array.from(this._nodesMap.values());
   }
 
-  public getNodeValues() {
-    return Array.from(this._nodesDoc.getMap<AppNode>().values());
-  }
-
-  public getEdgeValues() {
-    return Array.from(this._edgedDoc.getMap<Edge>().values());
+  public setNodes(nodes: AppNode[]) {
+    nodes.forEach((node) => this._nodesMap.set(node.id, node));
   }
 
   public getNodesUpdate() {
-    return Y.encodeStateAsUpdate(this._nodesDoc);
-  }
-
-  public setNodeValue(node: AppNode) {
-    this._nodesDoc.getMap().set(node.id, node);
-  }
-
-  public removeNodeValue(nodeId: AppNode['id']) {
-    this._nodesDoc.getMap().delete(nodeId);
-  }
-
-  public setEdgeValue(edge: Edge) {
-    this._edgedDoc.getMap().set(edge.id, edge);
-  }
-
-  public setNodeValues(nodes: AppNode[]) {
-    nodes.forEach((node) => this._nodesDoc.getMap().set(node.id, node));
-  }
-
-  public setEdgeValues(edges: Edge[]) {
-    edges.forEach((edge) => this._edgedDoc.getMap().set(edge.id, edge));
+    return _Y.encodeStateAsUpdate(this._nodesDoc);
   }
 
   public applyNodesUpdate(update: Uint8Array) {
-    Y.applyUpdate(this._nodesDoc, update);
+    _Y.applyUpdate(this._nodesDoc, update);
   }
 
-  public applyEdgesUpdate(update: Uint8Array) {
-    Y.applyUpdate(this._edgedDoc, update);
+  public setNode(node: AppNode) {
+    const currentNode = this._nodesMap.get(node.id);
+
+    if (!currentNode) return;
+
+    this._nodesMap.set(node.id, node);
+  }
+
+  public removeNode(nodeId: string) {
+    this._nodesMap.delete(nodeId);
+  }
+
+  public addNode(node: AppNode) {
+    this._nodesMap.set(node.id, node);
   }
 }

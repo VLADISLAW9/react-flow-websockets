@@ -5,7 +5,7 @@ import type { AppNode } from '@/utils/types';
 import { useReactFlowStore } from '@/utils/stores';
 
 import { socketActions } from '../socket';
-import { yjs } from '../yjs/instance';
+import { y } from '../yjs/instance';
 
 export class Canvas {
   public getNodes() {
@@ -17,27 +17,23 @@ export class Canvas {
   }
 
   public setNodes(nodes: AppNode[]) {
-    yjs.setNodeValues(nodes);
-    useReactFlowStore.getState().setNodes(yjs.getNodeValues() as any);
+    y.setNodes(nodes);
+    useReactFlowStore.getState().setNodes(y.getNodes());
   }
 
   public setEdges(edges: Edge[]) {
-    yjs.setEdgeValues(edges);
-    useReactFlowStore.getState().setEdges(yjs.getEdgeValues() as any);
+    useReactFlowStore.getState().setEdges(edges);
   }
 
   public moveCursor(position: { x: number; y: number }) {
     socketActions.moveCursor(position);
   }
 
-  public applyNodesUpdate(update: number[]) {
-    yjs.applyNodesUpdate(new Uint8Array(Array.from(update)));
-    useReactFlowStore.getState().setNodes(yjs.getNodeValues() as any);
-  }
+  public applyNodesUpdate(update: Record<number, number>) {
+    console.log('formatted', new Uint8Array(Object.values(update)));
 
-  public applyEdgesUpdate(update: number[]) {
-    yjs.applyEdgesUpdate(new Uint8Array(Array.from(update)));
-    useReactFlowStore.getState().setNodes(yjs.getEdgeValues() as any);
+    y.applyNodesUpdate(new Uint8Array(Object.values(update)));
+    useReactFlowStore.getState().setNodes(y.getNodes());
   }
 
   public moveNode(node: AppNode) {
@@ -53,19 +49,17 @@ export class Canvas {
     const updatedNodes = [...nodes];
     updatedNodes[updatedNodeIndex] = updatedNode;
 
-    yjs.setNodeValue(updatedNode);
+    y.setNode(updatedNode);
     useReactFlowStore.getState().setNodes(updatedNodes);
 
-    const update = new Uint8Array(yjs.getNodesUpdate());
-
-    socketActions.updateNodeData(updatedNode.id, update);
+    socketActions.updateNodeData(updatedNode.id, new Uint8Array(y.getNodesUpdate()));
   }
 
   public addNode(node: AppNode) {
     const currentNodes = useReactFlowStore.getState().nodes;
     const newNodes = [...currentNodes, node];
 
-    yjs.setNodeValue(node);
+    y.addNode(node);
     useReactFlowStore.getState().setNodes(newNodes);
 
     socketActions.addNode(node);
@@ -74,7 +68,7 @@ export class Canvas {
   public removeNode(nodeId: string) {
     const nodes = useReactFlowStore.getState().nodes;
 
-    yjs.removeNodeValue(nodeId);
+    y.removeNode(nodeId);
     useReactFlowStore.getState().setNodes(nodes.filter((node) => node.id !== nodeId));
 
     socketActions.removeNode(nodeId);

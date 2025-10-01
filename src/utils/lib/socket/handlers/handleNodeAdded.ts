@@ -1,5 +1,5 @@
 import { canvas } from '../../canvas/instance';
 
 export const handleNodeAdded = (data: any) => {
-  canvas.addNode(data.payload.node);
+  canvas.addNode(data.node);
 };

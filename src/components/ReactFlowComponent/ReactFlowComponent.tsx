@@ -14,26 +14,20 @@ import { Node } from './components';
 
 import '@xyflow/react/dist/style.css';
 
-const NODE_TYPES = {
-  node: Node
-};
+const NODE_TYPES = { node: Node };
 
 export const ReactFlowComponent = () => {
   const { screenToFlowPosition } = useReactFlow();
-  const { edges, nodes, onConnect, onEdgesChange, onNodesChange } = useReactFlowStore();
+  const { onConnect, onEdgesChange, onNodesChange } = useReactFlowStore();
 
+  const nodes = canvas.getNodes();
+  const edges = canvas.getEdges();
   const cursors = members.getCursors();
 
   const onNodeDrag: OnNodeDrag<AppNode> = (_, node) => canvas.moveNode(node);
 
-  const onMouseMove = (event: MouseEvent) => {
-    canvas.moveCursor(
-      screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY
-      })
-    );
-  };
+  const onMouseMove = (event: MouseEvent) =>
+    canvas.moveCursor(screenToFlowPosition({ x: event.clientX, y: event.clientY }));
 
   return (
     <ReactFlow

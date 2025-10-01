@@ -1,3 +1,3 @@
-import { Yjs } from './class';
+import { Y } from './class';
 
-export const yjs = new Yjs();
+export const y = new Y();

@@ -72,25 +72,25 @@ const initialFlowState = {
     {
       id: '1',
       type: 'node',
-      data: { label: 'Start' },
+      data: { label: 'Start', description: 'Some' },
       position: { x: 250, y: 5 }
     },
     {
       id: '2',
       type: 'node',
-      data: { label: 'Process' },
+      data: { label: 'Process', description: 'Some text' },
       position: { x: 100, y: 100 }
     },
     {
       id: '3',
       type: 'node',
-      data: { label: 'Process' },
+      data: { label: 'Process', description: 'Some text' },
       position: { x: 400, y: 100 }
     },
     {
       id: '4',
       type: 'node',
-      data: { label: 'End' },
+      data: { label: 'End', description: 'Some text' },
       position: { x: 250, y: 200 }
     }
   ],
@@ -215,9 +215,7 @@ wss.on('connection', (ws) => {
 
     if (!node) return;
 
-    if (node.position.x === position.x && node.position.y === position.y) {
-      return;
-    }
+    if (node.position.x === position.x && node.position.y === position.y) return;
 
     node.position = position;
 
@@ -236,6 +234,7 @@ wss.on('connection', (ws) => {
 
     if (rooms.has(roomId)) {
       const room = rooms.get(roomId);
+
       Array.from(room.clients.entries()).forEach(([client, user]) => {
         if (client !== ws && user.cursorPosition) {
           ws.send(
@@ -319,7 +318,7 @@ wss.on('connection', (ws) => {
           handleRemoveNode(ws, data.payload.nodeId);
           break;
         case 'UPDATE_NODE_DATA':
-          handleUpdateNodeData(ws, data.payload.nodeId, data.payload.newData);
+          handleUpdateNodeData(ws, data.payload.nodeId, data.payload.update);
           break;
         case 'MOVE_NODE':
           handleMoveNode(ws, data.payload.nodeId, data.payload.position);
