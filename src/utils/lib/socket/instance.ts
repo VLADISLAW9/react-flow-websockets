@@ -19,7 +19,7 @@ const SOCKET_EVENT_TYPE = {
   USER_LEFT: 'USER_LEFT'
 } as const;
 
-export const socket = new Socket('ws://localhost:9000');
+export const socket = new Socket('ws://192.168.0.102:9000');
 
 socket.on(SOCKET_EVENT_TYPE.CURSOR_MOVED, handleCursorMoved);
 socket.on(SOCKET_EVENT_TYPE.NODE_ADDED, handleNodeAdded);

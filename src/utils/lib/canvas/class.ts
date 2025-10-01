@@ -30,8 +30,6 @@ export class Canvas {
   }
 
   public applyNodesUpdate(update: Record<number, number>) {
-    console.log('formatted', new Uint8Array(Object.values(update)));
-
     y.applyNodesUpdate(new Uint8Array(Object.values(update)));
     useReactFlowStore.getState().setNodes(y.getNodes());
   }

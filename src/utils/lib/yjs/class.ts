@@ -19,7 +19,10 @@ export class Y {
   }
 
   public applyNodesUpdate(update: Uint8Array) {
-    _Y.applyUpdate(this._nodesDoc, update);
+    const localUpdate = this.getNodesUpdate();
+    const mergedUpdates = _Y.mergeUpdates([localUpdate, update]);
+
+    _Y.applyUpdate(this._nodesDoc, mergedUpdates);
   }
 
   public setNode(node: AppNode) {
