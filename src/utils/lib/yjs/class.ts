@@ -18,9 +18,9 @@ export class Y {
     return _Y.encodeStateAsUpdate(this._nodesDoc);
   }
 
-  public applyNodesUpdate(update: Uint8Array) {
+  public applyNodesUpdate(remoteUpdate: Uint8Array) {
     const localUpdate = this.getNodesUpdate();
-    const mergedUpdates = _Y.mergeUpdates([localUpdate, update]);
+    const mergedUpdates = _Y.mergeUpdates([localUpdate, remoteUpdate]);
 
     _Y.applyUpdate(this._nodesDoc, mergedUpdates);
   }
