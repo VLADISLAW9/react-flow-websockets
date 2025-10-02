@@ -24,6 +24,8 @@ export const ReactFlowComponent = () => {
   const edges = canvas.getEdges();
   const cursors = members.getCursors();
 
+  console.log(nodes);
+
   const onNodeDrag: OnNodeDrag<AppNode> = (_, node) => canvas.moveNode(node);
 
   const onMouseMove = (event: MouseEvent) =>

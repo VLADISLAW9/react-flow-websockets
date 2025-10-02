@@ -1,11 +1,11 @@
 import { canvas } from '../../canvas/instance';
 
 export const handleNodeMoved = (data: any) => {
-  const nodes = canvas.getNodes();
+  const node = canvas.getNode(data.nodeId);
 
-  console.log(data);
+  if (!node) return;
 
-  canvas.setNodes(
-    nodes.map((node) => (node.id === data.nodeId ? { ...node, position: data.position } : node))
-  );
+  node.position = data.position;
+
+  canvas.setNode(node, false);
 };

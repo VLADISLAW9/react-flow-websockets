@@ -15,6 +15,7 @@ export interface UseReactFlowStore {
 
   setEdges: (edges: Edge[]) => void;
   setNodes: (nodes: AppNode[]) => void;
+  setNode: (node: AppNode) => void;
 }
 
 export const useReactFlowStore = create<UseReactFlowStore>((set, get) => ({
@@ -41,6 +42,12 @@ export const useReactFlowStore = create<UseReactFlowStore>((set, get) => ({
 
   setNodes: (nodes) => {
     set({ nodes });
+  },
+
+  setNode: (updatedNode) => {
+    set(({ nodes }) => ({
+      nodes: nodes.map((node) => (node.id === updatedNode.id ? updatedNode : node))
+    }));
   },
 
   setEdges: (edges) => {

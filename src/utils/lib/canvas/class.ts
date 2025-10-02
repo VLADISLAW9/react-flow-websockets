@@ -12,6 +12,10 @@ export class Canvas {
     return useReactFlowStore.getState().nodes;
   }
 
+  public getNode(nodeId: string) {
+    return useReactFlowStore.getState().nodes.find((node) => node.id === nodeId);
+  }
+
   public getEdges() {
     return useReactFlowStore.getState().edges;
   }
@@ -29,28 +33,24 @@ export class Canvas {
     socketActions.moveCursor(position);
   }
 
-  public applyNodesUpdate(update: Record<number, number>) {
-    y.applyNodesUpdate(new Uint8Array(Object.values(update)));
-    useReactFlowStore.getState().setNodes(y.getNodes());
+  public applyNodeUpdate(nodeId: string, update: Record<number, number>) {
+    y.applyNodeUpdate(nodeId, new Uint8Array(Object.values(update)));
+    useReactFlowStore.getState().setNode(y.getNode(nodeId));
   }
 
   public moveNode(node: AppNode) {
     socketActions.moveNode(node.id, node.position);
   }
 
-  public setNode(updatedNode: AppNode) {
-    const nodes = useReactFlowStore.getState().nodes;
-    const updatedNodeIndex = nodes.findIndex((node) => node.id === updatedNode.id);
-
-    if (updatedNodeIndex === -1) return;
-
-    const updatedNodes = [...nodes];
-    updatedNodes[updatedNodeIndex] = updatedNode;
-
+  public setNode(updatedNode: AppNode, sendSocketMessage = true) {
     y.setNode(updatedNode);
-    useReactFlowStore.getState().setNodes(updatedNodes);
+    useReactFlowStore.getState().setNode(y.getNode(updatedNode.id));
 
-    socketActions.updateNodeData(updatedNode.id, new Uint8Array(y.getNodesUpdate()));
+    if (sendSocketMessage)
+      return socketActions.updateNodeData(
+        updatedNode.id,
+        new Uint8Array(y.getNodeUpdate(updatedNode.id))
+      );
   }
 
   public addNode(node: AppNode) {
